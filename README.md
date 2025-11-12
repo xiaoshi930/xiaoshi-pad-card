@@ -1,7 +1,7 @@
 # 消逝卡（平板端）
 ## 配置资源文件
 ~~~ 
-- url: /hacsfiles/xiaoshi-pad-card/xiaoshi-card.js
+- url: /hacsfiles/xiaoshi-pad-card/xiaoshi-pad-card.js
   type: module
 ~~~
 
