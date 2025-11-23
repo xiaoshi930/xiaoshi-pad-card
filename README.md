@@ -24,18 +24,21 @@ max: 80                      # 当前地区最大值
 mode: 湿度                   # 【温度】或者【湿度】
 ~~~
 
-## 功能2：进度条
+## 功能2：HA版本更新卡(手机平板端通用)
 **引用示例**
 ~~~
-type: custom:xiaoshi-pad-slider-card
-entity: number.xxxxxxx
-style:
-  slider-width: 110px                 # 总宽度，默认100px
-  slider-height: 10px                 # 总高度，默认30px
-  track-color: rgba(200,200,200,0.5)  # 背景色，默认rgba(255,255,255,0.3)
-  thumb-size: 15px                    # 进度点大小，默认15px
-  thumb-color: rgb(255,255,255)       # 进度点颜色，默认，白色
-  slider-color: rgb(25,155,125)       # 进度条背景色，默认，浅蓝色
-  track-height: 20px                  # 进度条高度，默认5px
-  track-radius: 4px                   # 圆角大小，默认2px
+type: custom:xiaoshi-update-card
+width: 100p%  
+theme: on
+~~~
+
+## 功能3：HA离线设备卡(手机平板端通用)
+**引用示例**
+~~~
+type: custom:xiaoshi-offline-card
+width: 320px
+exclude_devices:
+  - *设备*
+exclude_entities:
+  - *shiti*
 ~~~
