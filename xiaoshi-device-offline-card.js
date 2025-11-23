@@ -281,7 +281,7 @@ export class XiaoshiOfflineCard extends LitElement {
         align-items: center;
         padding: 0px;
         border-bottom: 1px solid rgb(150,150,150,0.2);
-        margin: 0 32px 8px 32px;
+        margin: 0 32px 0px 32px;
       }
 
       /*设备、实体明细背景*/
@@ -289,7 +289,7 @@ export class XiaoshiOfflineCard extends LitElement {
         flex: 1;
         overflow-y: auto;
         min-height: 0;
-        padding: 0 0 8px  0;
+        padding: 0 0 8px 0;
       }
 
       .device-icon {
@@ -304,7 +304,7 @@ export class XiaoshiOfflineCard extends LitElement {
       .device-name {
         font-weight: 500;
         color: var(--fg-color, #000);
-        margin-bottom: 4px;
+        padding: 6px 0 0 0;
       }
 
       .device-entity {
@@ -316,7 +316,6 @@ export class XiaoshiOfflineCard extends LitElement {
       .device-details {
         font-size: 10px;
         color: var(--fg-color, #000);
-        margin-top: 4px;
       }
 
       .device-last-seen {
@@ -327,7 +326,7 @@ export class XiaoshiOfflineCard extends LitElement {
 
       .no-devices {
         text-align: center;
-        padding: 0px;
+        padding: 8px 0 0 0;
         color: var(--fg-color, #000);
       }
 
