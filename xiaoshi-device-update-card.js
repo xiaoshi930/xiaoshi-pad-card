@@ -307,7 +307,7 @@ export class XiaoshiUpdateCard extends LitElement {
 
       .no-devices {
         text-align: center;
-        padding: 0px;
+        padding: 8px 0 0 0;
         color: var(--fg-color, #000);
       }
 
