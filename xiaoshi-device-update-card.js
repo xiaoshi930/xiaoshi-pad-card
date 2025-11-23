@@ -342,6 +342,10 @@ export class XiaoshiUpdateCard extends LitElement {
         text-overflow: ellipsis;
       }
 
+      .current-version.outdated {
+        color: rgb(255,20,0);
+      }
+
       .latest-version {
         color: var(--fg-color, #000);
         font-size: 10px;
@@ -690,9 +694,10 @@ export class XiaoshiUpdateCard extends LitElement {
     if (osEntity) {
       const current = osEntity.attributes.installed_version || '未知';
       const latest = osEntity.attributes.latest_version || '未知';
+      const osCurrentVersionClass = (current !== '未知' && latest !== '未知' && current !== latest) ? 'outdated' : '';
       versionElements.push(html`
         <div class="version-label">OS</div>
-        <div class="current-version">当前版本：${current}</div>
+        <div class="current-version ${osCurrentVersionClass}">当前版本：${current}</div>
         <div class="latest-version">最新版本：${latest}</div>
       `);
     }
@@ -702,9 +707,10 @@ export class XiaoshiUpdateCard extends LitElement {
     if (coreEntity) {
       const current = coreEntity.attributes.installed_version || '未知';
       const latest = coreEntity.attributes.latest_version || '未知';
+      const coreCurrentVersionClass = (current !== '未知' && latest !== '未知' && current !== latest) ? 'outdated' : '';
       versionElements.push(html`
         <div class="version-label">Core</div>
-        <div class="current-version">当前版本：${current}</div>
+        <div class="current-version ${coreCurrentVersionClass}">当前版本：${current}</div>
         <div class="latest-version">最新版本：${latest}</div>
       `);
     }
@@ -714,9 +720,10 @@ export class XiaoshiUpdateCard extends LitElement {
     if (supervisorEntity) {
       const current = supervisorEntity.attributes.installed_version || '未知';
       const latest = supervisorEntity.attributes.latest_version || '未知';
+      const supervisorCurrentVersionClass = (current !== '未知' && latest !== '未知' && current !== latest) ? 'outdated' : '';
       versionElements.push(html`
         <div class="version-label">Supervisor</div>
-        <div class="current-version">当前版本：${current}</div>
+        <div class="current-version ${supervisorCurrentVersionClass}">当前版本：${current}</div>
         <div class="latest-version">最新版本：${latest}</div>
       `);
     }
