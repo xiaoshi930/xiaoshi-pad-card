@@ -91,6 +91,7 @@ class XiaoshiBalanceCardEditor extends LitElement {
         align-items: center;
         gap: 8px;
         flex: 1;
+        justify-content: space-between;
       }
 
       .entity-details {
@@ -146,10 +147,14 @@ class XiaoshiBalanceCardEditor extends LitElement {
         margin-bottom: 8px;
         font-size: 12px;
         color: #000;
+        justify-content: space-between;
       }
 
       .attribute-config {
         margin-top: 4px;
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
       }
 
       .attribute-input {
@@ -159,6 +164,32 @@ class XiaoshiBalanceCardEditor extends LitElement {
         border-radius: 4px;
         font-size: 12px;
         box-sizing: border-box;
+      }
+
+      .override-config {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        margin-top: 2px;
+      }
+
+      .override-checkbox {
+        margin-right: 4px;
+      }
+
+      .override-input {
+        flex: 1;
+        padding: 2px 6px;
+        border: 1px solid #ddd;
+        border-radius: 3px;
+        font-size: 11px;
+        box-sizing: border-box;
+      }
+
+      .override-label {
+        font-size: 11px;
+        color: #666;
+        white-space: nowrap;
       }
 
       .remove-btn {
@@ -205,18 +236,7 @@ class XiaoshiBalanceCardEditor extends LitElement {
           />
         </div>
 
-        <div class="form-group">
-          <label>预警值：低于此值的金额将显示为红色</label>
-          <input 
-            type="number" 
-            @change=${this._entityChanged}
-            .value=${this.config.warning !== undefined ? this.config.warning : 20}
-            name="warning"
-            placeholder="默认20"
-            min="0"
-            step="0.01"
-          />
-        </div>
+
         
         <div class="form-group">
           <label>主题</label>
@@ -249,11 +269,11 @@ class XiaoshiBalanceCardEditor extends LitElement {
                     @click=${() => this._toggleEntity(entity.entity_id)}
                   >
                     <div class="entity-info">
-                      <ha-icon icon="${entity.attributes.icon || 'mdi:help-circle'}"></ha-icon>
                       <div class="entity-details">
                         <div class="entity-name">${entity.attributes.friendly_name || entity.entity_id}</div>
                         <div class="entity-id">${entity.entity_id}</div>
                       </div>
+                      <ha-icon icon="${entity.attributes.icon || 'mdi:help-circle'}"></ha-icon>
                     </div>
                     ${this.config.entities && this.config.entities.some(e => e.entity_id === entity.entity_id) ? 
                       html`<ha-icon icon="mdi:check" class="check-icon"></ha-icon>` : ''}
@@ -273,8 +293,8 @@ class XiaoshiBalanceCardEditor extends LitElement {
                 return html`
                   <div class="selected-entity-config">
                     <div class="selected-entity">
-                      <ha-icon icon="${entity?.attributes.icon || 'mdi:help-circle'}"></ha-icon>
                       <span>${entity?.attributes.friendly_name || entityConfig.entity_id}</span>
+                      <ha-icon icon="${entity?.attributes.icon || 'mdi:help-circle'}"></ha-icon>
                       <button class="remove-btn" @click=${() => this._removeEntity(index)}>
                         <ha-icon icon="mdi:close"></ha-icon>
                       </button>
@@ -287,6 +307,80 @@ class XiaoshiBalanceCardEditor extends LitElement {
                         placeholder="留空使用实体状态，或输入属性名"
                         class="attribute-input"
                       />
+                      
+                      <div class="override-config">
+                        <input 
+                          type="checkbox" 
+                          class="override-checkbox"
+                          @change=${(e) => this._updateEntityOverride(index, 'name', e.target.checked)}
+                          .checked=${entityConfig.overrides?.name !== undefined}
+                        />
+                        <span class="override-label">名称:</span>
+                        <input 
+                          type="text" 
+                          class="override-input"
+                          @change=${(e) => this._updateEntityOverrideValue(index, 'name', e.target.value)}
+                          .value=${entityConfig.overrides?.name || ''}
+                          placeholder="自定义名称"
+                          ?disabled=${entityConfig.overrides?.name === undefined}
+                        />
+                      </div>
+                      
+                      <div class="override-config">
+                        <input 
+                          type="checkbox" 
+                          class="override-checkbox"
+                          @change=${(e) => this._updateEntityOverride(index, 'icon', e.target.checked)}
+                          .checked=${entityConfig.overrides?.icon !== undefined}
+                        />
+                        <span class="override-label">图标:</span>
+                        <input 
+                          type="text" 
+                          class="override-input"
+                          @change=${(e) => this._updateEntityOverrideValue(index, 'icon', e.target.value)}
+                          .value=${entityConfig.overrides?.icon || ''}
+                          placeholder="mdi:icon-name"
+                          ?disabled=${entityConfig.overrides?.icon === undefined}
+                        />
+                      </div>
+                      
+                      <div class="override-config">
+                        <input 
+                          type="checkbox" 
+                          class="override-checkbox"
+                          @change=${(e) => this._updateEntityOverride(index, 'unit_of_measurement', e.target.checked)}
+                          .checked=${entityConfig.overrides?.unit_of_measurement !== undefined}
+                        />
+                        <span class="override-label">单位:</span>
+                        <input 
+                          type="text" 
+                          class="override-input"
+                          @change=${(e) => this._updateEntityOverrideValue(index, 'unit_of_measurement', e.target.value)}
+                          .value=${entityConfig.overrides?.unit_of_measurement || ''}
+                          placeholder="自定义单位"
+                          ?disabled=${entityConfig.overrides?.unit_of_measurement === undefined}
+                        />
+                      </div>
+                      
+                      <div class="override-config">
+                        <input 
+                          type="checkbox" 
+                          class="override-checkbox"
+                          @change=${(e) => this._updateEntityOverride(index, 'warning', e.target.checked)}
+                          .checked=${entityConfig.overrides?.warning !== undefined}
+                        />
+                        <span class="override-label">预警:</span>
+                        <input 
+                          type="number" 
+                          class="override-input"
+                          @change=${(e) => this._updateEntityOverrideValue(index, 'warning', e.target.value)}
+                          .value=${entityConfig.overrides?.warning || ''}
+                          placeholder="预警值"
+                          min="0"
+                          step="0.01"
+                          ?disabled=${entityConfig.overrides?.warning === undefined}
+                        />
+                      </div>
                     </div>
                   </div>
                 `;
@@ -294,10 +388,13 @@ class XiaoshiBalanceCardEditor extends LitElement {
             ` : ''}
           </div>
           <div class="help-text">
-            搜索并选择要显示的设备余额实体，支持多选。每个实体可以配置要显示的属性：<br>
-            • 留空：显示实体的状态值<br>
-            • 输入属性名：显示指定属性的值<br>
-            • 单位会自动从实体的 unit_of_measurement 属性获取，默认为"元"
+            搜索并选择要显示的设备余额实体，支持多选。每个实体可以配置：<br>
+            • 属性名：留空使用实体状态，或输入属性名<br>
+            • 名称重定义：勾选后可自定义显示名称<br>
+            • 图标重定义：勾选后可自定义图标（如 mdi:phone）<br>
+            • 单位重定义：勾选后可自定义单位（如 元、$、kWh 等）<br>
+            • 预警值：勾选后设置预警值，低于此值显示红色<br>
+            • 未勾选重定义时，将使用实体的原始属性值
           </div>
         </div>
       </div>
@@ -358,7 +455,11 @@ class XiaoshiBalanceCardEditor extends LitElement {
       newEntities = currentEntities.filter(e => e.entity_id !== entityId);
     } else {
       // 添加实体
-      newEntities = [...currentEntities, { entity_id: entityId, attribute: null }];
+      newEntities = [...currentEntities, { 
+        entity_id: entityId, 
+        attribute: null,
+        overrides: undefined
+      }];
     }
     
     this.config = {
@@ -401,6 +502,69 @@ class XiaoshiBalanceCardEditor extends LitElement {
       newEntities[index] = {
         ...newEntities[index],
         attribute: attributeValue.trim() || null
+      };
+    }
+    
+    this.config = {
+      ...this.config,
+      entities: newEntities
+    };
+    
+    this.dispatchEvent(new CustomEvent('config-changed', {
+      detail: { config: this.config },
+      bubbles: true,
+      composed: true
+    }));
+    
+    this.requestUpdate();
+  }
+
+  _updateEntityOverride(index, overrideType, enabled) {
+    const currentEntities = this.config.entities || [];
+    const newEntities = [...currentEntities];
+    
+    if (newEntities[index]) {
+      const overrides = { ...newEntities[index].overrides };
+      
+      if (enabled) {
+        // 启用覆盖，设置默认值
+        overrides[overrideType] = '';
+      } else {
+        // 禁用覆盖，删除该属性
+        delete overrides[overrideType];
+      }
+      
+      newEntities[index] = {
+        ...newEntities[index],
+        overrides: Object.keys(overrides).length > 0 ? overrides : undefined
+      };
+    }
+    
+    this.config = {
+      ...this.config,
+      entities: newEntities
+    };
+    
+    this.dispatchEvent(new CustomEvent('config-changed', {
+      detail: { config: this.config },
+      bubbles: true,
+      composed: true
+    }));
+    
+    this.requestUpdate();
+  }
+
+  _updateEntityOverrideValue(index, overrideType, value) {
+    const currentEntities = this.config.entities || [];
+    const newEntities = [...currentEntities];
+    
+    if (newEntities[index] && newEntities[index].overrides && newEntities[index].overrides[overrideType] !== undefined) {
+      const overrides = { ...newEntities[index].overrides };
+      overrides[overrideType] = value.trim();
+      
+      newEntities[index] = {
+        ...newEntities[index],
+        overrides: overrides
       };
     }
     
@@ -619,7 +783,7 @@ class XiaoshiBalanceCard extends LitElement {
       }
 
       .device-icon {
-        margin-right: 12px;
+        margin-left: 12px;
         color: var(--fg-color, #000);
         flex-shrink: 0;
       }
@@ -748,12 +912,34 @@ class XiaoshiBalanceCard extends LitElement {
           unit = attributes.unit_of_measurement;
         }
 
+        // 应用属性重定义
+        let friendlyName = attributes.friendly_name || entityId;
+        let icon = attributes.icon || 'mdi:help-circle';
+        let warningThreshold = undefined;
+        
+        // 应用用户自定义的重定义
+        if (entityConfig.overrides) {
+          if (entityConfig.overrides.name !== undefined && entityConfig.overrides.name !== '') {
+            friendlyName = entityConfig.overrides.name;
+          }
+          if (entityConfig.overrides.icon !== undefined && entityConfig.overrides.icon !== '') {
+            icon = entityConfig.overrides.icon;
+          }
+          if (entityConfig.overrides.unit_of_measurement !== undefined && entityConfig.overrides.unit_of_measurement !== '') {
+            unit = entityConfig.overrides.unit_of_measurement;
+          }
+          if (entityConfig.overrides.warning !== undefined && entityConfig.overrides.warning !== '') {
+            warningThreshold = parseFloat(entityConfig.overrides.warning);
+          }
+        }
+
         balanceData.push({
           entity_id: entityId,
-          friendly_name: attributes.friendly_name || entityId,
+          friendly_name: friendlyName,
           value: value,
           unit: unit,
-          icon: attributes.icon || 'mdi:help-circle'
+          icon: icon,
+          warning_threshold: warningThreshold
         });
       }
 
@@ -808,15 +994,16 @@ class XiaoshiBalanceCard extends LitElement {
               html`<div class="no-devices">请配置余额实体</div>` :
               html`
                 ${this._oilPriceData.map(balanceData => {
-                  const warningThreshold = this.config.warning || 20;
                   const numericValue = parseFloat(balanceData.value);
-                  const isWarning = !isNaN(numericValue) && numericValue < warningThreshold;
+                  const isWarning = balanceData.warning_threshold !== undefined && 
+                                   !isNaN(numericValue) && 
+                                   numericValue < balanceData.warning_threshold;
                   
                   return html`
                     <div class="device-item" @click=${() => this._handleEntityClick(balanceData)}>
                       <div class="device-left">
-                        <ha-icon class="device-icon" icon="${balanceData.icon}"></ha-icon>
                         <div class="device-name">${balanceData.friendly_name}</div>
+                        <ha-icon class="device-icon" icon="${balanceData.icon}"></ha-icon>
                       </div>
                       <div class="device-value ${isWarning ? 'warning' : ''}">
                         ${balanceData.value}
