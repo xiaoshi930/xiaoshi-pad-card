@@ -42,3 +42,26 @@ exclude_devices:
 exclude_entities:
   - *shiti*
 ~~~
+
+## 功能4：电话信息余额卡(手机平板端通用)
+**引用示例**
+~~~
+type: custom:xiaoshi-balance-card
+name: 电话余额信息
+width: 350px
+entities:
+  - entity_id: sensor.999
+    attribute: null
+    overrides:
+      icon: ""
+      name: ""
+      unit_of_measurement: ""
+      warning: ""
+  - entity_id: input_boolean.777
+    attribute: friendly_name
+    overrides:
+      name: ""
+      icon: ""
+      unit_of_measurement: ""
+      warning: "99"
+~~~
