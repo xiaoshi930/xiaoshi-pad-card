@@ -425,6 +425,12 @@ export class XiaoshiOfflineCard extends LitElement {
 
       const offlineDevices = [];
 
+      // 获取设备排除模式
+      const excludeDevicePatterns = this.config.exclude_devices || [];
+      
+      // 记录被排除的设备ID集合
+      const excludedDeviceIds = new Set();
+      
       // 并行检查所有设备
       const deviceChecks = devices.map(device => {
         const deviceEntities = entitiesByDevice[device.id] || [];
@@ -434,12 +440,6 @@ export class XiaoshiOfflineCard extends LitElement {
           isOffline: this._checkDeviceAvailabilitySync(device, deviceEntities, entityMap)
         };
       });
-
-      // 获取设备排除模式
-      const excludeDevicePatterns = this.config.exclude_devices || [];
-      
-      // 记录被排除的设备ID集合
-      const excludedDeviceIds = new Set();
       
       // 过滤离线设备并构建数据
       deviceChecks.forEach(({ device, deviceEntities, isOffline }) => {
@@ -453,16 +453,25 @@ export class XiaoshiOfflineCard extends LitElement {
             return; // 跳过匹配排除模式的设备
           }
           
-          offlineDevices.push({
-            device_id: device.id,
-            name: deviceName,
-            model: device.model,
-            manufacturer: device.manufacturer,
-            area_id: device.area_id,
-            entities: deviceEntities,
-            last_seen: this._getDeviceLastSeen(deviceEntities, entityMap),
-            icon: this._getDeviceIcon(device, deviceEntities)
+          // 再次确保设备有有效实体
+          const validEntities = deviceEntities.filter(entityReg => {
+            const entity = entityMap[entityReg.entity_id];
+            return entity && !entityReg.disabled_by;
           });
+          
+          // 只有当设备有有效实体时才添加到离线设备列表
+          if (validEntities.length > 0) {
+            offlineDevices.push({
+              device_id: device.id,
+              name: deviceName,
+              model: device.model,
+              manufacturer: device.manufacturer,
+              area_id: device.area_id,
+              entities: validEntities, // 使用有效实体而不是所有实体
+              last_seen: this._getDeviceLastSeen(validEntities, entityMap),
+              icon: this._getDeviceIcon(device, validEntities)
+            });
+          }
         }
       });
 
@@ -537,7 +546,7 @@ export class XiaoshiOfflineCard extends LitElement {
 
   _checkDeviceAvailabilitySync(device, deviceEntities, entityMap) {
     if (!deviceEntities || deviceEntities.length === 0) {
-      return true; // 没有实体的设备视为离线
+      return false; // 没有实体的设备不视为离线，直接排除
     }
 
     // 检查设备的可用性状态
@@ -545,16 +554,23 @@ export class XiaoshiOfflineCard extends LitElement {
       return false; // 被禁用的设备不算离线
     }
 
+    // 过滤出有效的实体（未被禁用且在entityMap中存在）
+    const validEntities = deviceEntities.filter(entityReg => {
+      const entity = entityMap[entityReg.entity_id];
+      return entity && !entityReg.disabled_by;
+    });
+
+    // 如果没有有效实体，则不视为离线设备，直接排除
+    if (validEntities.length === 0) {
+      return false;
+    }
+
     let hasAvailableEntity = false;
     let hasUnavailableEntity = false;
 
-    for (const entityReg of deviceEntities) {
+    for (const entityReg of validEntities) {
       const entity = entityMap[entityReg.entity_id];
-      if (!entity) continue;
-
-      // 跳过被禁用的实体
-      if (entityReg.disabled_by) continue;
-
+      
       if (entity.state !== 'unavailable' ) {
         hasAvailableEntity = true;
         break; // 找到一个可用实体就可以停止检查
@@ -563,7 +579,7 @@ export class XiaoshiOfflineCard extends LitElement {
       }
     }
 
-    // 如果设备有实体但所有实体都不可用，则设备离线
+    // 如果设备有有效实体但所有实体都不可用，则设备离线
     return hasUnavailableEntity && !hasAvailableEntity;
   }
 
