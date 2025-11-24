@@ -312,24 +312,6 @@ class XiaoshiBalanceCardEditor extends LitElement {
                         <input 
                           type="checkbox" 
                           class="override-checkbox"
-                          @change=${(e) => this._updateEntityOverride(index, 'name', e.target.checked)}
-                          .checked=${entityConfig.overrides?.name !== undefined}
-                        />
-                        <span class="override-label">名称:</span>
-                        <input 
-                          type="text" 
-                          class="override-input"
-                          @change=${(e) => this._updateEntityOverrideValue(index, 'name', e.target.value)}
-                          .value=${entityConfig.overrides?.name || ''}
-                          placeholder="自定义名称"
-                          ?disabled=${entityConfig.overrides?.name === undefined}
-                        />
-                      </div>
-                      
-                      <div class="override-config">
-                        <input 
-                          type="checkbox" 
-                          class="override-checkbox"
                           @change=${(e) => this._updateEntityOverride(index, 'icon', e.target.checked)}
                           .checked=${entityConfig.overrides?.icon !== undefined}
                         />
@@ -343,7 +325,25 @@ class XiaoshiBalanceCardEditor extends LitElement {
                           ?disabled=${entityConfig.overrides?.icon === undefined}
                         />
                       </div>
-                      
+
+                      <div class="override-config">
+                        <input 
+                          type="checkbox" 
+                          class="override-checkbox"
+                          @change=${(e) => this._updateEntityOverride(index, 'name', e.target.checked)}
+                          .checked=${entityConfig.overrides?.name !== undefined}
+                        />
+                        <span class="override-label">名称:</span>
+                        <input 
+                          type="text" 
+                          class="override-input"
+                          @change=${(e) => this._updateEntityOverrideValue(index, 'name', e.target.value)}
+                          .value=${entityConfig.overrides?.name || ''}
+                          placeholder="自定义名称"
+                          ?disabled=${entityConfig.overrides?.name === undefined}
+                        />
+                      </div>
+
                       <div class="override-config">
                         <input 
                           type="checkbox" 
@@ -783,7 +783,7 @@ class XiaoshiBalanceCard extends LitElement {
       }
 
       .device-icon {
-        margin-left: 12px;
+        margin-right: 12px;
         color: var(--fg-color, #000);
         flex-shrink: 0;
       }
@@ -910,6 +910,9 @@ class XiaoshiBalanceCard extends LitElement {
         // 尝试从属性中获取单位
         if (attributes.unit_of_measurement) {
           unit = attributes.unit_of_measurement;
+        } else {
+          // 如果实体没有单位，则不显示单位
+          unit = '';
         }
 
         // 应用属性重定义
@@ -1002,8 +1005,8 @@ class XiaoshiBalanceCard extends LitElement {
                   return html`
                     <div class="device-item" @click=${() => this._handleEntityClick(balanceData)}>
                       <div class="device-left">
-                        <div class="device-name">${balanceData.friendly_name}</div>
                         <ha-icon class="device-icon" icon="${balanceData.icon}"></ha-icon>
+                        <div class="device-name">${balanceData.friendly_name}</div>
                       </div>
                       <div class="device-value ${isWarning ? 'warning' : ''}">
                         ${balanceData.value}
