@@ -1,9 +1,10 @@
-console.info("%c 消逝卡-平板端 \n%c      v 0.0.4 ", "color: red; font-weight: bold; background: black", "color: white; font-weight: bold; background: black");
+console.info("%c 消逝卡-平板端 \n%c      v 0.0.5 ", "color: red; font-weight: bold; background: black", "color: white; font-weight: bold; background: black");
 
 const loadCards = async () => {
     await import('./xiaoshi-pad-grid-card.js');
     await import('./xiaoshi-device-update-card.js');
     await import('./xiaoshi-device-offline-card.js');
+    await import('./xiaoshi-device-balance-card.js');
     
     window.customCards = window.customCards || [];
     window.customCards.push(...cardConfigs);
@@ -25,6 +26,12 @@ const cardConfigs = [
     type: 'xiaoshi-offline-card',
     name: '消逝卡HA离线设备卡片',
     description: '显示所有离线的设备和实体',
+    preview: true
+  },
+  {
+    type: 'xiaoshi-balance-card',
+    name: '消逝电话余额卡',
+    description: '消逝电话余额卡',
     preview: true
   }
 ];
