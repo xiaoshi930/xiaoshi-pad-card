@@ -28,7 +28,7 @@ mode: 湿度                   # 【温度】或者【湿度】
 **引用示例**
 ~~~
 type: custom:xiaoshi-update-card
-width: 100p%  
+width: 100%
 theme: on
 ~~~
 
@@ -36,7 +36,8 @@ theme: on
 **引用示例**
 ~~~
 type: custom:xiaoshi-offline-card
-width: 320px
+width: 100%
+theme: on
 exclude_devices:
   - *设备*
 exclude_entities:
@@ -48,7 +49,8 @@ exclude_entities:
 ~~~
 type: custom:xiaoshi-balance-card
 name: 电话余额信息
-width: 350px
+width: 100%
+theme: on
 entities:
   - entity_id: sensor.999
     attribute: null
@@ -64,4 +66,15 @@ entities:
       icon: ""
       unit_of_measurement: ""
       warning: "99"
+~~~
+
+## 功能4：待办事项卡(手机平板端通用)
+**引用示例**
+~~~
+type: custom:xiaoshi-todo-card
+width: 100%
+theme: on
+entities:
+  - todo.kuai_di
+  - todo.ji_shi_ben
 ~~~
