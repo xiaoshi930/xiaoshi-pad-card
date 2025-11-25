@@ -236,7 +236,20 @@ class XiaoshiBalanceCardEditor extends LitElement {
           />
         </div>
 
-
+        <div class="form-group">
+          <label>全局预警条件：当任一实体满足此条件时触发预警</label>
+          <input 
+            type="text" 
+            @change=${this._entityChanged}
+            .value=${this.config.global_warning || ''}
+            name="global_warning"
+            placeholder="如: >10, <=5, ==on, ==off, =='hello world'"
+          />
+          <div class="help-text">
+            全局预警条件：当任一实体满足此条件时，该实体显示为红色预警状态<br>
+            优先级：明细预警 > 全局预警 > 无预警
+          </div>
+        </div>
         
         <div class="form-group">
           <label>主题</label>
@@ -371,13 +384,11 @@ class XiaoshiBalanceCardEditor extends LitElement {
                         />
                         <span class="override-label">预警:</span>
                         <input 
-                          type="number" 
+                          type="text" 
                           class="override-input"
                           @change=${(e) => this._updateEntityOverrideValue(index, 'warning', e.target.value)}
                           .value=${entityConfig.overrides?.warning || ''}
-                          placeholder="预警值"
-                          min="0"
-                          step="0.01"
+                          placeholder="如: >10, <=5, ==on, ==off, =='hello world'"
                           ?disabled=${entityConfig.overrides?.warning === undefined}
                         />
                       </div>
@@ -393,7 +404,7 @@ class XiaoshiBalanceCardEditor extends LitElement {
             • 名称重定义：勾选后可自定义显示名称<br>
             • 图标重定义：勾选后可自定义图标（如 mdi:phone）<br>
             • 单位重定义：勾选后可自定义单位（如 元、$、kWh 等）<br>
-            • 预警值：勾选后设置预警值，低于此值显示红色<br>
+            • 预警条件：勾选后设置预警条件，支持 >10, >=10, <10, <=10, ==10, ==on, ==off, =="hello world" 等<br>
             • 未勾选重定义时，将使用实体的原始属性值
           </div>
         </div>
@@ -932,7 +943,7 @@ class XiaoshiBalanceCard extends LitElement {
             unit = entityConfig.overrides.unit_of_measurement;
           }
           if (entityConfig.overrides.warning !== undefined && entityConfig.overrides.warning !== '') {
-            warningThreshold = parseFloat(entityConfig.overrides.warning);
+            warningThreshold = entityConfig.overrides.warning; // 保持原始字符串
           }
         }
 
@@ -970,6 +981,54 @@ class XiaoshiBalanceCard extends LitElement {
     }
   }
 
+  _evaluateWarningCondition(value, condition) {
+    if (!condition) return false;
+    
+    // 解析条件字符串，支持操作符后可能有空格
+    const match = condition.match(/^(>=|<=|>|<|==|!=)\s*(.+)$/);
+    if (!match) return false;
+    
+    const operator = match[1];
+    let compareValue = match[2].trim();
+    
+    // 移除比较值两端的引号（如果有的话）
+    if ((compareValue.startsWith('"') && compareValue.endsWith('"')) || 
+        (compareValue.startsWith("'") && compareValue.endsWith("'"))) {
+      compareValue = compareValue.slice(1, -1);
+    }
+    
+    // 尝试将值转换为数字
+    const numericValue = parseFloat(value);
+    const numericCompare = parseFloat(compareValue);
+    
+    // 如果两个值都是数字，进行数值比较
+    if (!isNaN(numericValue) && !isNaN(numericCompare)) {
+      switch (operator) {
+        case '>': return numericValue > numericCompare;
+        case '>=': return numericValue >= numericCompare;
+        case '<': return numericValue < numericCompare;
+        case '<=': return numericValue <= numericCompare;
+        case '==': return numericValue === numericCompare;
+        case '!=': return numericValue !== numericCompare;
+      }
+    }
+    
+    // 字符串比较（用于 ==on, ==off, ==66 66 等）
+    const stringValue = String(value);
+    const stringCompare = compareValue;
+    
+    switch (operator) {
+      case '==': return stringValue === stringCompare;
+      case '!=': return stringValue !== stringCompare;
+      case '>': return stringValue > stringCompare;
+      case '>=': return stringValue >= stringCompare;
+      case '<': return stringValue < stringCompare;
+      case '<=': return stringValue <= stringCompare;
+    }
+    
+    return false;
+  }
+
 
   render() {
     if (!this.hass) {
@@ -997,10 +1056,20 @@ class XiaoshiBalanceCard extends LitElement {
               html`<div class="no-devices">请配置余额实体</div>` :
               html`
                 ${this._oilPriceData.map(balanceData => {
-                  const numericValue = parseFloat(balanceData.value);
-                  const isWarning = balanceData.warning_threshold !== undefined && 
-                                   !isNaN(numericValue) && 
-                                   numericValue < balanceData.warning_threshold;
+                  // 明细预警优先级最高
+                  let isWarning = false;
+                  
+                  // 首先检查明细预警，如果存在且满足条件，直接设为预警状态
+                  if (balanceData.warning_threshold && balanceData.warning_threshold.trim() !== '') {
+                    isWarning = this._evaluateWarningCondition(balanceData.value, balanceData.warning_threshold);
+                    console.log(`明细预警 - 实体: ${balanceData.friendly_name}, 值: "${balanceData.value}", 条件: "${balanceData.warning_threshold}", 预警: ${isWarning}`);
+                  } else {
+                    // 只有在没有明细预警时才检查全局预警
+                    if (this.config.global_warning && this.config.global_warning.trim() !== '') {
+                      isWarning = this._evaluateWarningCondition(balanceData.value, this.config.global_warning);
+                      console.log(`全局预警 - 实体: ${balanceData.friendly_name}, 值: "${balanceData.value}", 条件: "${this.config.global_warning}", 预警: ${isWarning}`);
+                    }
+                  }
                   
                   return html`
                     <div class="device-item" @click=${() => this._handleEntityClick(balanceData)}>
