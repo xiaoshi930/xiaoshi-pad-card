@@ -68,7 +68,7 @@ entities:
       warning: "99"
 ~~~
 
-## 功能4：待办事项卡(手机平板端通用)
+## 功能5：待办事项卡(手机平板端通用)
 **引用示例**
 ~~~
 type: custom:xiaoshi-todo-card
