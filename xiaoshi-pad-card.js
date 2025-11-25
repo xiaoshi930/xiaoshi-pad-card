@@ -6,6 +6,7 @@ const loadCards = async () => {
     await import('./xiaoshi-device-offline-card.js');
     await import('./xiaoshi-device-balance-card.js');
     await import('./xiaoshi-device-todo-card.js');
+    await import('./xiaoshi-device-consumables-card.js');
     
     window.customCards = window.customCards || [];
     window.customCards.push(...cardConfigs);
@@ -39,6 +40,12 @@ const cardConfigs = [
     type: 'xiaoshi-todo-card',
     name: '消逝待办事项',
     description: '消逝待办事项',
+    preview: true
+  },
+  {
+    type: 'xiaoshi-consumables-card',
+    name: '消逝耗材统计',
+    description: '消逝耗材统计',
     preview: true
   }
 ];
