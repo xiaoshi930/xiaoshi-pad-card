@@ -1,10 +1,11 @@
-console.info("%c 消逝卡-平板端 \n%c      v 0.0.7 ", "color: red; font-weight: bold; background: black", "color: white; font-weight: bold; background: black");
+console.info("%c 消逝卡-平板端 \n%c      v 0.0.8 ", "color: red; font-weight: bold; background: black", "color: white; font-weight: bold; background: black");
 
 const loadCards = async () => {
     await import('./xiaoshi-pad-grid-card.js');
     await import('./xiaoshi-device-update-card.js');
     await import('./xiaoshi-device-offline-card.js');
     await import('./xiaoshi-device-balance-card.js');
+    await import('./xiaoshi-device-todo-card.js');
     
     window.customCards = window.customCards || [];
     window.customCards.push(...cardConfigs);
@@ -32,6 +33,12 @@ const cardConfigs = [
     type: 'xiaoshi-balance-card',
     name: '消逝电话余额卡',
     description: '消逝电话余额卡',
+    preview: true
+  },
+  {
+    type: 'xiaoshi-todo-card',
+    name: '消逝待办事项',
+    description: '消逝待办事项',
     preview: true
   }
 ];
