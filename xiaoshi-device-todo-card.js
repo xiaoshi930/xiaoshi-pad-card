@@ -696,7 +696,8 @@ class XiaoshiTodoCard extends LitElement {
         border-radius: 4px;
         cursor: pointer;
         font-size: 12px;
-        margin-bottom: 8px;
+        margin-top: 8px;
+        margin-bottom: 2px;
       }
 
       .add-todo-toggle:hover {
