@@ -252,6 +252,18 @@ class XiaoshiConsumablesCardEditor extends LitElement {
         </div>
         
         <div class="form-group">
+          <label>列数：明细显示的列数</label>
+          <select 
+            @change=${this._entityChanged}
+            .value=${this.config.columns !== undefined ? this.config.columns : '2'}
+            name="columns"
+          >
+            <option value="1">1列</option>
+            <option value="2">2列（默认）</option>
+          </select>
+        </div>
+        
+        <div class="form-group">
           <label>主题</label>
           <select 
             @change=${this._entityChanged}
@@ -443,16 +455,14 @@ class XiaoshiConsumablesCardEditor extends LitElement {
     
     if (!this.hass) return;
     
-    // 获取所有实体
     const allEntities = Object.values(this.hass.states);
     
-    // 过滤实体
     this._filteredEntities = allEntities.filter(entity => {
       const entityId = entity.entity_id.toLowerCase();
       const friendlyName = (entity.attributes.friendly_name || '').toLowerCase();
       
       return entityId.includes(searchTerm) || friendlyName.includes(searchTerm);
-    }).slice(0, 50); // 限制显示数量
+    }).slice(0, 50);
     
     this.requestUpdate();
   }
@@ -462,10 +472,8 @@ class XiaoshiConsumablesCardEditor extends LitElement {
     let newEntities;
     
     if (currentEntities.some(e => e.entity_id === entityId)) {
-      // 移除实体
       newEntities = currentEntities.filter(e => e.entity_id !== entityId);
     } else {
-      // 添加实体
       newEntities = [...currentEntities, { 
         entity_id: entityId, 
         attribute: null,
@@ -538,10 +546,8 @@ class XiaoshiConsumablesCardEditor extends LitElement {
       const overrides = { ...newEntities[index].overrides };
       
       if (enabled) {
-        // 启用覆盖，设置默认值
         overrides[overrideType] = '';
       } else {
-        // 禁用覆盖，删除该属性
         delete overrides[overrideType];
       }
       
@@ -593,7 +599,6 @@ class XiaoshiConsumablesCardEditor extends LitElement {
     this.requestUpdate();
   }
 
-  // 点击外部关闭下拉列表
   firstUpdated() {
     document.addEventListener('click', (e) => {
       if (!e.target.closest('.entity-selector')) {
@@ -651,7 +656,6 @@ class XiaoshiConsumablesCard extends LitElement {
         align-items: center;
         padding: 16px;
         background: var(--bg-color, #fff);
-        
         border-radius: 12px;
       }
 
@@ -699,11 +703,14 @@ class XiaoshiConsumablesCard extends LitElement {
       }
       
       .device-count.non-zero {
-        background: rgb(2, 250, 250, 0.5);
+        background: rgba(255, 0, 0, 0.7);
+        color: #fff;
+        animation: pulse 2s infinite;
       }
       
       .device-count.zero {
-        background: rgb(0, 205, 0);
+        background: rgba(0, 205, 0, 0.7);
+        color: #fff;
       }
 
       /*标题刷新按钮*/
@@ -764,10 +771,11 @@ class XiaoshiConsumablesCard extends LitElement {
         align-items: center;
         justify-content: space-between;
         margin: 0px 16px;
-        padding: 8px 0;
+        padding: 6px 0;
         border-bottom: 1px solid rgb(150,150,150,0.5);
         cursor: pointer;
         transition: background-color 0.2s;
+        min-height: 32px;
       }
 
       .device-item:first-child {
@@ -786,33 +794,100 @@ class XiaoshiConsumablesCard extends LitElement {
         padding: 0 0 8px 0;
       }
 
+      /*2列布局容器*/
+      .devices-grid {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+        gap: 1px;
+        padding: 0 16px;
+        width: 100%;
+        box-sizing: border-box;
+        overflow: hidden;
+      }
+
+      /*强制每列等宽*/
+      .devices-grid > * {
+        min-width: 0;
+        width: 100%;
+        box-sizing: border-box;
+        overflow: hidden;
+      }
+
+      /*2列布局中的设备项*/
+      .devices-grid .device-item {
+        margin: 0;
+        padding: 4px 12px;
+        background: var(--bg-color, #fff);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        cursor: pointer;
+        transition: background-color 0.2s;
+        min-height: 24px;
+        border-bottom: none;
+        border-right: none;
+        border-left: none;
+        width: 100%;
+        max-width: 100%;
+        box-sizing: border-box;
+        overflow: hidden;
+      }
+
+      .devices-grid .device-item:hover {
+        background-color: rgba(150,150,150,0.1);
+      }
+
+      /*2列布局中的第一行顶部边框*/
+      .devices-grid .device-item:nth-child(1),
+      .devices-grid .device-item:nth-child(2) {
+        border-top: 1px solid rgb(150,150,150,0.5);
+      }
+
+      /*1列布局保持原有样式*/
+      .devices-list.single-column {
+        padding: 0 0 8px 0;
+      }
+
       .device-left {
         display: flex;
         align-items: center;
         flex: 1;
         min-width: 0;
+        overflow: hidden;
       }
 
       .device-icon {
-        margin-right: 12px;
+        margin-right: 8px;
         color: var(--fg-color, #000);
         flex-shrink: 0;
+        font-size: 10px;
+        width: 12px;
+        height: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
       }
 
       .device-name {
         color: var(--fg-color, #000);
-        font-size: 12px;
+        font-size: 9px;
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
+        flex: 1;
+        min-width: 0;
       }
 
       .device-value {
         color: var(--fg-color, #000);
-        font-size: 12px;
-        margin-left: auto;
+        font-size: 9px;
         flex-shrink: 0;
         font-weight: bold;
+        max-width: 45%;
+        text-align: right;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
       }
 
       .device-value.warning {
@@ -820,10 +895,12 @@ class XiaoshiConsumablesCard extends LitElement {
       }
 
       .device-unit {
-        font-size: 12px;
+        font-size: 8px;
         color: var(--fg-color, #000);
-        margin-left: 4px;
+        margin-left: 2px;
         font-weight: bold;
+        white-space: nowrap;
+        flex-shrink: 0;
       }
 
       .device-unit.warning {
@@ -981,27 +1058,50 @@ class XiaoshiConsumablesCard extends LitElement {
     }
   }
 
+  _renderDeviceItem(consumablesData) {
+    let isWarning = false;
+    
+    if (consumablesData.warning_threshold && consumablesData.warning_threshold.trim() !== '') {
+      isWarning = this._evaluateWarningCondition(consumablesData.value, consumablesData.warning_threshold);
+      console.log(`明细预警 - 实体: ${consumablesData.friendly_name}, 值: "${consumablesData.value}", 条件: "${consumablesData.warning_threshold}", 预警: ${isWarning}`);
+    } else {
+      if (this.config.global_warning && this.config.global_warning.trim() !== '') {
+        isWarning = this._evaluateWarningCondition(consumablesData.value, this.config.global_warning);
+        console.log(`全局预警 - 实体: ${consumablesData.friendly_name}, 值: "${consumablesData.value}", 条件: "${this.config.global_warning}", 预警: ${isWarning}`);
+      }
+    }
+    
+    return html`
+      <div class="device-item" @click=${() => this._handleEntityClick(consumablesData)}>
+        <div class="device-left">
+          <ha-icon class="device-icon" icon="${consumablesData.icon}"></ha-icon>
+          <div class="device-name">${consumablesData.friendly_name}</div>
+        </div>
+        <div class="device-value ${isWarning ? 'warning' : ''}">
+          ${consumablesData.value}
+          <span class="device-unit ${isWarning ? 'warning' : ''}">${consumablesData.unit}</span>
+        </div>
+      </div>
+    `;
+  }
+
   _evaluateWarningCondition(value, condition) {
     if (!condition) return false;
     
-    // 解析条件字符串，支持操作符后可能有空格
     const match = condition.match(/^(>=|<=|>|<|==|!=)\s*(.+)$/);
     if (!match) return false;
     
     const operator = match[1];
     let compareValue = match[2].trim();
     
-    // 移除比较值两端的引号（如果有的话）
     if ((compareValue.startsWith('"') && compareValue.endsWith('"')) || 
         (compareValue.startsWith("'") && compareValue.endsWith("'"))) {
       compareValue = compareValue.slice(1, -1);
     }
     
-    // 尝试将值转换为数字
     const numericValue = parseFloat(value);
     const numericCompare = parseFloat(compareValue);
     
-    // 如果两个值都是数字，进行数值比较
     if (!isNaN(numericValue) && !isNaN(numericCompare)) {
       switch (operator) {
         case '>': return numericValue > numericCompare;
@@ -1013,7 +1113,6 @@ class XiaoshiConsumablesCard extends LitElement {
       }
     }
     
-    // 字符串比较（用于 ==on, ==off, ==66 66 等）
     const stringValue = String(value);
     const stringCompare = compareValue;
     
@@ -1034,10 +1133,24 @@ class XiaoshiConsumablesCard extends LitElement {
     if (!this.hass) {
       return html`<div class="loading">等待Home Assistant连接...</div>`;
     }
-    // 获取主题和颜色
+    
     const theme = this._evaluateTheme();
     const fgColor = theme === 'on' ? 'rgb(0, 0, 0)' : 'rgb(255, 255, 255)';
     const bgColor = theme === 'on' ? 'rgb(255, 255, 255)' : 'rgb(50, 50, 50)';
+    
+    const warningCount = this._oilPriceData.filter(consumablesData => {
+      let isWarning = false;
+      
+      if (consumablesData.warning_threshold && consumablesData.warning_threshold.trim() !== '') {
+        isWarning = this._evaluateWarningCondition(consumablesData.value, consumablesData.warning_threshold);
+      } else {
+        if (this.config.global_warning && this.config.global_warning.trim() !== '') {
+          isWarning = this._evaluateWarningCondition(consumablesData.value, this.config.global_warning);
+        }
+      }
+      
+      return isWarning;
+    }).length;
     
     return html`
       <ha-card style="--fg-color: ${fgColor}; --bg-color: ${bgColor};">
@@ -1046,47 +1159,26 @@ class XiaoshiConsumablesCard extends LitElement {
             <span class="offline-indicator" style="background: rgb(0,222,220); animation: pulse 2s infinite"></span>
             ${this.config.name || '耗材信息统计'}
           </div>
+          <div class="device-count ${warningCount > 0 ? 'non-zero' : 'zero'}">
+            ${warningCount}
+          </div>
         </div>
         
-        <div class="devices-list">
-          ${this._loading ? 
-            html`<div class="loading">加载中...</div>` :
-            
-            this._oilPriceData.length === 0 ? 
-              html`<div class="no-devices">请配置耗材实体</div>` :
-              html`
-                ${this._oilPriceData.map(consumablesData => {
-                  // 明细预警优先级最高
-                  let isWarning = false;
-                  
-                  // 首先检查明细预警，如果存在且满足条件，直接设为预警状态
-                  if (consumablesData.warning_threshold && consumablesData.warning_threshold.trim() !== '') {
-                    isWarning = this._evaluateWarningCondition(consumablesData.value, consumablesData.warning_threshold);
-                    console.log(`明细预警 - 实体: ${consumablesData.friendly_name}, 值: "${consumablesData.value}", 条件: "${consumablesData.warning_threshold}", 预警: ${isWarning}`);
-                  } else {
-                    // 只有在没有明细预警时才检查全局预警
-                    if (this.config.global_warning && this.config.global_warning.trim() !== '') {
-                      isWarning = this._evaluateWarningCondition(consumablesData.value, this.config.global_warning);
-                      console.log(`全局预警 - 实体: ${consumablesData.friendly_name}, 值: "${consumablesData.value}", 条件: "${this.config.global_warning}", 预警: ${isWarning}`);
-                    }
-                  }
-                  
-                  return html`
-                    <div class="device-item" @click=${() => this._handleEntityClick(consumablesData)}>
-                      <div class="device-left">
-                        <ha-icon class="device-icon" icon="${consumablesData.icon}"></ha-icon>
-                        <div class="device-name">${consumablesData.friendly_name}</div>
-                      </div>
-                      <div class="device-value ${isWarning ? 'warning' : ''}">
-                        ${consumablesData.value}
-                        <span class="device-unit ${isWarning ? 'warning' : ''}">${consumablesData.unit}</span>
-                      </div>
-                    </div>
-                  `;
-                })}
-              `
-          }
-        </div>
+        ${this._loading ? 
+          html`<div class="loading">加载中...</div>` :
+          
+          this._oilPriceData.length === 0 ? 
+            html`<div class="no-devices">请配置耗材实体</div>` :
+            this.config.columns === '1' ? html`
+              <div class="devices-list single-column">
+                ${this._oilPriceData.map(consumablesData => this._renderDeviceItem(consumablesData))}
+              </div>
+            ` : html`
+              <div class="devices-grid">
+                ${this._oilPriceData.map(consumablesData => this._renderDeviceItem(consumablesData))}
+              </div>
+            `
+        }
       </ha-card>
     `;
   }
@@ -1094,19 +1186,16 @@ class XiaoshiConsumablesCard extends LitElement {
   setConfig(config) {
     this.config = config;
     
-    // 设置CSS变量来控制卡片的宽度和高度
     if (config.width) {
       this.style.setProperty('--card-width', config.width);
     }
     
-    // 设置主题
     if (config.theme) {
       this.setAttribute('theme', config.theme);
     }
   }
 
   getCardSize() {
-    // 根据设备耗材实体数量动态计算卡片大小
     const baseSize = 3;
     const entitySize = Math.max(0, Math.min(this._oilPriceData.length * 2, 10));
     return baseSize + entitySize;
