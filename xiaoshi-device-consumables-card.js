@@ -436,11 +436,13 @@ class XiaoshiConsumablesCardEditor extends LitElement {
           </div>
           <div class="help-text">
             搜索并选择要显示的设备耗材实体，支持多选。每个实体可以配置：<br>
+            • <strong>特殊实体显示：</strong>binary_sensor(off→正常,on→缺少), event(unknown→正常,其他→低电量)<br>
             • 属性名：留空使用实体状态，或输入属性名<br>
             • 名称重定义：勾选后可自定义显示名称<br>
             • 图标重定义：勾选后可自定义图标（如 mdi:phone）<br>
             • 单位重定义：勾选后可自定义单位（如 元、$、kWh 等）<br>
             • 预警条件：勾选后设置预警条件，支持 >10, >=10, <10, <=10, ==10, ==on, ==off, =="hello world" 等<br>
+            • 换算：对数值进行数学运算，支持 +10, -10, *1.5, /2 等<br>
             • 未勾选重定义时，将使用实体的原始属性值
           </div>
         </div>
@@ -1021,6 +1023,26 @@ class XiaoshiConsumablesCard extends LitElement {
           value = attributes[attributeName];
         }
 
+        // 特殊实体类型的数值显示逻辑
+        if (!attributeName) {
+          // binary_sensor 实体：off显示正常，on显示缺少
+          if (entityId.startsWith('binary_sensor.')) {
+            if (value === 'off') {
+              value = '正常';
+            } else if (value === 'on') {
+              value = '缺少';
+            }
+          }
+          // event 实体：unknown显示正常，非unknown或不可用时显示低电量
+          else if (entityId.startsWith('event.')) {
+            if (value === 'unknown') {
+              value = '正常';
+            } else if (value !== 'unknown' && value !== 'unavailable') {
+              value = '低电量';
+            }
+          }
+        }
+
         // 尝试从属性中获取单位
         if (attributes.unit_of_measurement) {
           unit = attributes.unit_of_measurement;
@@ -1054,10 +1076,11 @@ class XiaoshiConsumablesCard extends LitElement {
           }
         }
 
-        // 应用换算
+        // 应用换算（只对数值进行换算，不对文本状态进行换算）
         let originalValue = value;
-        if (conversion) {
+        if (conversion && !isNaN(parseFloat(value))) {
           value = this._applyConversion(value, conversion);
+        } else if (conversion && isNaN(parseFloat(value))) {
         }
 
         consumablesData.push({
@@ -1099,11 +1122,21 @@ class XiaoshiConsumablesCard extends LitElement {
   _renderDeviceItem(consumablesData) {
     let isWarning = false;
     
-    if (consumablesData.warning_threshold && consumablesData.warning_threshold.trim() !== '') {
-      isWarning = this._evaluateWarningCondition(consumablesData.value, consumablesData.warning_threshold);
+    // 特殊实体类型的默认预警逻辑
+    if (consumablesData.entity_id.startsWith('binary_sensor.') && !consumablesData.warning_threshold) {
+      // binary_sensor: "缺少"状态时预警
+      isWarning = consumablesData.value === '缺少';
+    } else if (consumablesData.entity_id.startsWith('event.') && !consumablesData.warning_threshold) {
+      // event: "低电量"状态时预警
+      isWarning = consumablesData.value === '低电量';
     } else {
-      if (this.config.global_warning && this.config.global_warning.trim() !== '') {
-        isWarning = this._evaluateWarningCondition(consumablesData.value, this.config.global_warning);
+      // 使用配置的预警条件
+      if (consumablesData.warning_threshold && consumablesData.warning_threshold.trim() !== '') {
+        isWarning = this._evaluateWarningCondition(consumablesData.value, consumablesData.warning_threshold);
+      } else {
+        if (this.config.global_warning && this.config.global_warning.trim() !== '') {
+          isWarning = this._evaluateWarningCondition(consumablesData.value, this.config.global_warning);
+        }
       }
     }
     
