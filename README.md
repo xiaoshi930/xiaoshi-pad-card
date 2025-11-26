@@ -78,3 +78,28 @@ entities:
   - todo.kuai_di
   - todo.ji_shi_ben
 ~~~
+
+## 功能6：耗材信息卡片(手机平板端通用)
+**引用示例**
+type: custom:xiaoshi-consumables-card
+width: 100%
+global_warning: <8
+columns: "2"
+entities:
+  - entity_id: input_text.aaa
+    overrides:
+      name: 奥斯卡德拉萨达实打实实打实
+      unit_of_measurement: "%"
+      warning: <10
+      conversion: "*2"
+      icon: ""
+  - entity_id: input_text.aaa1
+  - entity_id: input_text.aaa2
+  - entity_id: input_text.aaa3
+  - entity_id: input_text.aaa4
+  - entity_id: input_text.aaa5
+  - entity_id: input_text.aaa6
+  - entity_id: input_text.aaa7
+~~~
+
+
