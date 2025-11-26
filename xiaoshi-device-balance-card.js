@@ -466,11 +466,12 @@ class XiaoshiBalanceCardEditor extends LitElement {
       newEntities = currentEntities.filter(e => e.entity_id !== entityId);
     } else {
       // 添加实体
-      newEntities = [...currentEntities, { 
-        entity_id: entityId, 
-        attribute: null,
+      const newEntity = { 
+        entity_id: entityId,
         overrides: undefined
-      }];
+      };
+      // 只有在明确指定属性时才添加 attribute 字段
+      newEntities = [...currentEntities, newEntity];
     }
     
     this.config = {
@@ -510,10 +511,17 @@ class XiaoshiBalanceCardEditor extends LitElement {
     const newEntities = [...currentEntities];
     
     if (newEntities[index]) {
-      newEntities[index] = {
-        ...newEntities[index],
-        attribute: attributeValue.trim() || null
-      };
+      const updatedEntity = { ...newEntities[index] };
+      
+      if (attributeValue.trim()) {
+        // 只有当属性值不为空时才设置 attribute 字段
+        updatedEntity.attribute = attributeValue.trim();
+      } else {
+        // 如果属性值为空，则移除 attribute 字段
+        delete updatedEntity.attribute;
+      }
+      
+      newEntities[index] = updatedEntity;
     }
     
     this.config = {
