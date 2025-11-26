@@ -1061,13 +1061,11 @@ class XiaoshiBalanceCard extends LitElement {
                   
                   // 首先检查明细预警，如果存在且满足条件，直接设为预警状态
                   if (balanceData.warning_threshold && balanceData.warning_threshold.trim() !== '') {
-                    isWarning = this._evaluateWarningCondition(balanceData.value, balanceData.warning_threshold);
-                    console.log(`明细预警 - 实体: ${balanceData.friendly_name}, 值: "${balanceData.value}", 条件: "${balanceData.warning_threshold}", 预警: ${isWarning}`);
+                    isWarning = this._evaluateWarningCondition(balanceData.value, balanceData.warning_threshold); 
                   } else {
                     // 只有在没有明细预警时才检查全局预警
                     if (this.config.global_warning && this.config.global_warning.trim() !== '') {
                       isWarning = this._evaluateWarningCondition(balanceData.value, this.config.global_warning);
-                      console.log(`全局预警 - 实体: ${balanceData.friendly_name}, 值: "${balanceData.value}", 条件: "${this.config.global_warning}", 预警: ${isWarning}`);
                     }
                   }
                   
