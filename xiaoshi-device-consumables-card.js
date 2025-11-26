@@ -247,7 +247,8 @@ class XiaoshiConsumablesCardEditor extends LitElement {
           />
           <div class="help-text">
             全局预警条件：当任一实体满足此条件时，该实体显示为红色预警状态<br>
-            优先级：明细预警 > 全局预警 > 无预警
+            优先级：明细预警 > 全局预警 > 无预警<br>
+            预警基于换算后的结果进行判断（如果配置了换算）
           </div>
         </div>
         
@@ -400,9 +401,32 @@ class XiaoshiConsumablesCardEditor extends LitElement {
                           class="override-input"
                           @change=${(e) => this._updateEntityOverrideValue(index, 'warning', e.target.value)}
                           .value=${entityConfig.overrides?.warning || ''}
-                          placeholder="如: >10, <=5, ==on, ==off, =='hello world'"
+                          placeholder='>10, <=5, ==on,=="hello world"'
                           ?disabled=${entityConfig.overrides?.warning === undefined}
                         />
+                      </div>
+
+                      <div class="override-config">
+                        <input 
+                          type="checkbox" 
+                          class="override-checkbox"
+                          @change=${(e) => this._updateEntityOverride(index, 'conversion', e.target.checked)}
+                          .checked=${entityConfig.overrides?.conversion !== undefined}
+                        />
+                        <span class="override-label">换算:</span>
+                        <input 
+                          type="text" 
+                          class="override-input"
+                          @change=${(e) => this._updateEntityOverrideValue(index, 'conversion', e.target.value)}
+                          .value=${entityConfig.overrides?.conversion || ''}
+                          placeholder="+10, -10, *1.5, /2"
+                          ?disabled=${entityConfig.overrides?.conversion === undefined}
+                        />
+                      </div>
+
+                      <div class="help-text">
+                        <strong>预警：</strong>针对单个实体的预警条件，优先级高于全局预警<br>
+                        <strong>换算：</strong>对原始数值进行数学运算，支持 +10, -10, *1.5, /2 等格式<br>
                       </div>
                     </div>
                   </div>
@@ -705,7 +729,6 @@ class XiaoshiConsumablesCard extends LitElement {
       .device-count.non-zero {
         background: rgba(255, 0, 0, 0.7);
         color: #fff;
-        animation: pulse 2s infinite;
       }
       
       .device-count.zero {
@@ -771,11 +794,12 @@ class XiaoshiConsumablesCard extends LitElement {
         align-items: center;
         justify-content: space-between;
         margin: 0px 16px;
-        padding: 6px 0;
+        padding: 0;
         border-bottom: 1px solid rgb(150,150,150,0.5);
         cursor: pointer;
         transition: background-color 0.2s;
-        min-height: 32px;
+        min-height: 30px;
+        max-height: 30px;
       }
 
       .device-item:first-child {
@@ -798,8 +822,8 @@ class XiaoshiConsumablesCard extends LitElement {
       .devices-grid {
         display: grid;
         grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-        gap: 1px;
-        padding: 0 16px;
+        gap: 0 15px;
+        padding: 0px 16px;
         width: 100%;
         box-sizing: border-box;
         overflow: hidden;
@@ -815,15 +839,16 @@ class XiaoshiConsumablesCard extends LitElement {
 
       /*2列布局中的设备项*/
       .devices-grid .device-item {
-        margin: 0;
-        padding: 4px 12px;
+        margin: 0.5px 0;
+        padding: 0;
         background: var(--bg-color, #fff);
         display: flex;
         align-items: center;
         justify-content: space-between;
         cursor: pointer;
         transition: background-color 0.2s;
-        min-height: 24px;
+        min-height: 30px;
+        max-height: 30px;
         border-bottom: none;
         border-right: none;
         border-left: none;
@@ -831,6 +856,7 @@ class XiaoshiConsumablesCard extends LitElement {
         max-width: 100%;
         box-sizing: border-box;
         overflow: hidden;
+        border-bottom: 1px solid rgb(150,150,150,0.5);
       }
 
       .devices-grid .device-item:hover {
@@ -895,9 +921,9 @@ class XiaoshiConsumablesCard extends LitElement {
       }
 
       .device-unit {
-        font-size: 8px;
+        font-size: 9px;
         color: var(--fg-color, #000);
-        margin-left: 2px;
+        margin-left: 0.5px;
         font-weight: bold;
         white-space: nowrap;
         flex-shrink: 0;
@@ -1007,6 +1033,7 @@ class XiaoshiConsumablesCard extends LitElement {
         let friendlyName = attributes.friendly_name || entityId;
         let icon = attributes.icon || 'mdi:help-circle';
         let warningThreshold = undefined;
+        let conversion = undefined;
         
         // 应用用户自定义的重定义
         if (entityConfig.overrides) {
@@ -1022,15 +1049,26 @@ class XiaoshiConsumablesCard extends LitElement {
           if (entityConfig.overrides.warning !== undefined && entityConfig.overrides.warning !== '') {
             warningThreshold = entityConfig.overrides.warning; // 保持原始字符串
           }
+          if (entityConfig.overrides.conversion !== undefined && entityConfig.overrides.conversion !== '') {
+            conversion = entityConfig.overrides.conversion; // 换算表达式
+          }
+        }
+
+        // 应用换算
+        let originalValue = value;
+        if (conversion) {
+          value = this._applyConversion(value, conversion);
         }
 
         consumablesData.push({
           entity_id: entityId,
           friendly_name: friendlyName,
           value: value,
+          original_value: originalValue,
           unit: unit,
           icon: icon,
-          warning_threshold: warningThreshold
+          warning_threshold: warningThreshold,
+          conversion: conversion
         });
       }
 
@@ -1063,11 +1101,9 @@ class XiaoshiConsumablesCard extends LitElement {
     
     if (consumablesData.warning_threshold && consumablesData.warning_threshold.trim() !== '') {
       isWarning = this._evaluateWarningCondition(consumablesData.value, consumablesData.warning_threshold);
-      console.log(`明细预警 - 实体: ${consumablesData.friendly_name}, 值: "${consumablesData.value}", 条件: "${consumablesData.warning_threshold}", 预警: ${isWarning}`);
     } else {
       if (this.config.global_warning && this.config.global_warning.trim() !== '') {
         isWarning = this._evaluateWarningCondition(consumablesData.value, this.config.global_warning);
-        console.log(`全局预警 - 实体: ${consumablesData.friendly_name}, 值: "${consumablesData.value}", 条件: "${this.config.global_warning}", 预警: ${isWarning}`);
       }
     }
     
@@ -1083,6 +1119,54 @@ class XiaoshiConsumablesCard extends LitElement {
         </div>
       </div>
     `;
+  }
+
+  _applyConversion(value, conversion) {
+    if (!conversion || !value) return value;
+    
+    try {
+      // 提取数值部分
+      const numericValue = parseFloat(value);
+      if (isNaN(numericValue)) {
+        console.warn(`无法将值 "${value}" 转换为数字进行换算`);
+        return value;
+      }
+      
+      // 解析换算表达式
+      const match = conversion.match(/^([+\-*/])(\d+(?:\.\d+)?)$/);
+      if (!match) {
+        console.warn(`无效的换算表达式: "${conversion}"，支持的格式: +10, -10, *1.5, /2`);
+        return value;
+      }
+      
+      const operator = match[1];
+      const operand = parseFloat(match[2]);
+      
+      let result;
+      switch (operator) {
+        case '+':
+          result = numericValue + operand;
+          break;
+        case '-':
+          result = numericValue - operand;
+          break;
+        case '*':
+          result = numericValue * operand;
+          break;
+        case '/':
+          result = numericValue / operand;
+          break;
+        default:
+          return value;
+      }
+      
+      // 返回结果，保留适当的小数位数
+      return Number.isInteger(result) ? result.toString() : result.toFixed(2).toString();
+      
+    } catch (error) {
+      console.error(`换算时出错: ${error.message}`);
+      return value;
+    }
   }
 
   _evaluateWarningCondition(value, condition) {
@@ -1156,7 +1240,7 @@ class XiaoshiConsumablesCard extends LitElement {
       <ha-card style="--fg-color: ${fgColor}; --bg-color: ${bgColor};">
         <div class="card-header">
           <div class="card-title">
-            <span class="offline-indicator" style="background: rgb(0,222,220); animation: pulse 2s infinite"></span>
+            <span class="offline-indicator" style="background: ${warningCount === 0 ? 'rgb(0,255,0)' : 'rgb(255,0,0)'}; animation: pulse 2s infinite"></span>
             ${this.config.name || '耗材信息统计'}
           </div>
           <div class="device-count ${warningCount > 0 ? 'non-zero' : 'zero'}">
