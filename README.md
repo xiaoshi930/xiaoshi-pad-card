@@ -81,6 +81,7 @@ entities:
 
 ## 功能6：耗材信息卡片(手机平板端通用)
 **引用示例**
+~~~
 type: custom:xiaoshi-consumables-card
 width: 100%
 global_warning: <8
