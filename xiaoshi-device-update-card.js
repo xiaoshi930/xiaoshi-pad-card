@@ -68,6 +68,19 @@ class XiaoshiUpdateCardEditor extends LitElement {
           </select>
         </div>
         
+        <div class="form-group">
+          <label>
+            <input 
+              type="checkbox" 
+              @change=${this._entityChanged}
+              .checked=${this.config.skip_updates !== false}
+              name="skip_updates"
+            />
+            包含已跳过的更新
+          </label>
+          <div class="help-text">如果勾选，将包含标记为跳过的版本更新</div>
+        </div>
+        
 
       </div>
 
@@ -75,10 +88,17 @@ class XiaoshiUpdateCardEditor extends LitElement {
   }
 
   _entityChanged(e) {
-    const { name, value } = e.target;
-    if (!value && name !== 'theme' && name !== 'width') return;
+    const { name, value, type, checked } = e.target;
     
-    let finalValue = value;
+    let finalValue;
+    
+    // 处理复选框
+    if (type === 'checkbox') {
+      finalValue = checked;
+    } else {
+      if (!value && name !== 'theme' && name !== 'width') return;
+      finalValue = value;
+    }
     
     // 处理不同字段的默认值
     if (name === 'width') {
@@ -459,19 +479,10 @@ export class XiaoshiUpdateCard extends LitElement {
       const haUpdates = [];
       const otherUpdates = [];
 
-      
-
-      
-
-      
-
-      
-
-      
-
       // 获取update.开头的实体更新信息
       try {
         const entities = Object.values(this.hass.states);
+        const skipUpdates = this.config.skip_updates !== false; // 默认为true
         
         entities.forEach(entity => {
           // 筛选以update.开头的实体
@@ -484,6 +495,15 @@ export class XiaoshiUpdateCard extends LitElement {
                 attributes.installed_version &&
                 attributes.latest_version !== attributes.installed_version) {
               
+              // 如果不跳过更新，检查skipped_version属性
+              if (!skipUpdates) {
+                const skippedVersion = attributes.skipped_version;
+                // 如果skipped_version不为null且等于latest_version，则跳过此更新
+                if (skippedVersion !== null && skippedVersion === attributes.latest_version) {
+                  return; // 跳过此更新
+                }
+              }
+              
               const updateData = {
                 name: attributes.friendly_name || entity.entity_id.replace('update.', ''),
                 current_version: attributes.installed_version,
@@ -493,7 +513,8 @@ export class XiaoshiUpdateCard extends LitElement {
                 entity_id: entity.entity_id,
                 title: attributes.title || '',
                 release_url: attributes.release_url || '',
-                entity_picture: attributes.entity_picture || ''
+                entity_picture: attributes.entity_picture || '',
+                skipped_version: attributes.skipped_version || null
               };
               
               // 检查是否为home_assistant开头的实体
@@ -765,9 +786,6 @@ export class XiaoshiUpdateCard extends LitElement {
     return html`${backupElements}`;
   }
 
-
-
-
   render() {
     if (!this.hass) {
       return html`<div class="loading">等待Home Assistant连接...</div>`;
@@ -837,6 +855,7 @@ export class XiaoshiUpdateCard extends LitElement {
                         <div class="device-name">${update.name}</div>
                         <div class="device-details">
                           当前版本: ${update.current_version} → 最新版本: ${update.latest_version}
+                          ${update.skipped_version ? html`<br><span style="color: #ff9800;">已跳过版本: ${update.skipped_version}</span>` : ''}
                         </div>
                       </div>
                       <div class="device-last-seen" @click=${(e) => this._handleConfirmUpdate(update, e)}>
@@ -861,6 +880,7 @@ export class XiaoshiUpdateCard extends LitElement {
                         <div class="device-name">${update.name}</div>
                         <div class="device-details">
                           当前版本: ${update.current_version} → 最新版本: ${update.latest_version}
+                          ${update.skipped_version ? html`<br><span style="color: #ff9800;">已跳过版本: ${update.skipped_version}</span>` : ''}
                         </div>
                       </div>
                       <div class="device-last-seen" @click=${(e) => this._handleConfirmUpdate(update, e)}>
