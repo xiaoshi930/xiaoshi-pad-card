@@ -502,7 +502,6 @@ class XiaoshiConsumablesCardEditor extends LitElement {
     } else {
       newEntities = [...currentEntities, { 
         entity_id: entityId, 
-        attribute: null,
         overrides: undefined
       }];
     }
@@ -544,10 +543,18 @@ class XiaoshiConsumablesCardEditor extends LitElement {
     const newEntities = [...currentEntities];
     
     if (newEntities[index]) {
-      newEntities[index] = {
-        ...newEntities[index],
-        attribute: attributeValue.trim() || null
-      };
+      const trimmedValue = attributeValue.trim();
+      if (trimmedValue === '') {
+        // 如果属性为空，则从配置中移除 attribute 字段
+        const { attribute, ...entityWithoutAttribute } = newEntities[index];
+        newEntities[index] = entityWithoutAttribute;
+      } else {
+        // 如果属性不为空，则设置属性值
+        newEntities[index] = {
+          ...newEntities[index],
+          attribute: trimmedValue
+        };
+      }
     }
     
     this.config = {
