@@ -1082,7 +1082,25 @@ class XiaoshiTodoCard extends LitElement {
                       ${todoData.items.length === 0 ? 
                         html`<div class="no-devices">暂无待办事项</div>` :
                         html`
-                          ${todoData.items.map(item => {
+                          ${(() => {
+                            // 将待办事项分为有时间和无时间两组
+                            const itemsWithoutTime = todoData.items.filter(item => !item.due);
+                            const itemsWithTime = todoData.items.filter(item => item.due);
+                            
+                            // 没有时间的按名称排序
+                            itemsWithoutTime.sort((a, b) => (a.summary || '').localeCompare(b.summary || ''));
+                            
+                            // 有时间的按时间排序
+                            itemsWithTime.sort((a, b) => {
+                              const dateA = new Date(a.due);
+                              const dateB = new Date(b.due);
+                              return dateA - dateB;
+                            });
+                            
+                            // 合并结果：无时间的在前，有时间的在后
+                            const sortedItems = [...itemsWithoutTime, ...itemsWithTime];
+                            
+                            return sortedItems.map(item => {
                             const dueText = this._calculateDueDate(item.due);
                             const isEditing = this._editingItem && this._editingItem.entityId === todoData.entity_id && this._editingItem.uid === item.uid;
                             
@@ -1185,7 +1203,8 @@ class XiaoshiTodoCard extends LitElement {
                                 </button>
                               </div>
                             `;
-                          })}
+                          });
+                          })()}
                         `
                       }
                       <div>
