@@ -24,19 +24,12 @@ max: 80                      # 当前地区最大值
 mode: 湿度                   # 【温度】或者【湿度】
 ~~~
 
-## 功能2：HA版本更新卡(手机平板端通用)
+## 功能2：HA信息卡(手机平板端通用)
 **引用示例**
 ~~~
 type: custom:xiaoshi-update-card
 width: 100%
-theme: on
-~~~
-
-## 功能3：HA离线设备卡(手机平板端通用)
-**引用示例**
-~~~
-type: custom:xiaoshi-offline-card
-width: 100%
+skip_updates: false    #是否包含已跳过的更新
 theme: on
 exclude_devices:
   - *设备*
@@ -44,7 +37,7 @@ exclude_entities:
   - *shiti*
 ~~~
 
-## 功能4：电话信息余额卡(手机平板端通用)
+## 功能3：电话信息余额卡(手机平板端通用)
 **引用示例**
 ~~~
 type: custom:xiaoshi-balance-card
@@ -68,7 +61,7 @@ entities:
       warning: "99"
 ~~~
 
-## 功能5：待办事项卡(手机平板端通用)
+## 功能4：待办事项卡(手机平板端通用)
 **引用示例**
 ~~~
 type: custom:xiaoshi-todo-card
@@ -79,7 +72,7 @@ entities:
   - todo.ji_shi_ben
 ~~~
 
-## 功能6：耗材信息卡片(手机平板端通用)
+## 功能5：耗材信息卡片(手机平板端通用)
 **引用示例**
 ~~~
 type: custom:xiaoshi-consumables-card
