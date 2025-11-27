@@ -74,7 +74,6 @@ class XiaoshiConsumablesCardEditor extends LitElement {
         align-items: center;
         justify-content: space-between;
         padding: 8px 12px;
-        cursor: pointer;
         border-bottom: 1px solid #eee;
       }
 
@@ -452,6 +451,8 @@ class XiaoshiConsumablesCardEditor extends LitElement {
   }
 
   _entityChanged(e) {
+
+    
     const { name, value } = e.target;
     if (!value && name !== 'theme' && name !== 'width' ) return;
     
@@ -1265,11 +1266,21 @@ class XiaoshiConsumablesCard extends LitElement {
     const warningCount = this._oilPriceData.filter(consumablesData => {
       let isWarning = false;
       
-      if (consumablesData.warning_threshold && consumablesData.warning_threshold.trim() !== '') {
-        isWarning = this._evaluateWarningCondition(consumablesData.value, consumablesData.warning_threshold);
+      // 对于 binary_sensor 和 event，使用默认预警逻辑
+      if (consumablesData.entity_id.startsWith('binary_sensor.') && !consumablesData.warning_threshold) {
+        // binary_sensor: "缺少"状态时预警
+        isWarning = consumablesData.value === '缺少';
+      } else if (consumablesData.entity_id.startsWith('event.') && !consumablesData.warning_threshold) {
+        // event: "低电量"状态时预警
+        isWarning = consumablesData.value === '低电量';
       } else {
-        if (this.config.global_warning && this.config.global_warning.trim() !== '') {
-          isWarning = this._evaluateWarningCondition(consumablesData.value, this.config.global_warning);
+        // 使用配置的预警条件
+        if (consumablesData.warning_threshold && consumablesData.warning_threshold.trim() !== '') {
+          isWarning = this._evaluateWarningCondition(consumablesData.value, consumablesData.warning_threshold);
+        } else {
+          if (this.config.global_warning && this.config.global_warning.trim() !== '') {
+            isWarning = this._evaluateWarningCondition(consumablesData.value, this.config.global_warning);
+          }
         }
       }
       
