@@ -21,15 +21,9 @@ const cardConfigs = [
     description: '温度分布、湿度分布'
   },
   {
-    type: 'xiaoshi-update-card',
-    name: '消逝卡HA更新监控卡片',
-    description: '显示需要更新的组件和版本',
-    preview: true
-  },
-  {
-    type: 'xiaoshi-offline-card',
-    name: '消逝卡HA离线设备卡片',
-    description: '显示所有离线的设备和实体',
+    type: 'xiaoshi-ha-info-card',
+    name: '消逝卡HA信息卡片',
+    description: '消逝卡HA信息卡片',
     preview: true
   },
   {
