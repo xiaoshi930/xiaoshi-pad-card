@@ -1,12 +1,14 @@
-console.info("%c 消逝卡-平板端 \n%c      v 0.1.2 ", "color: red; font-weight: bold; background: black", "color: white; font-weight: bold; background: black");
+console.info("%c 消逝卡-平板端 \n%c      v 0.1.3 ", "color: red; font-weight: bold; background: black", "color: white; font-weight: bold; background: black");
 
 const loadCards = async () => {
     await import('./xiaoshi-pad-grid-card.js');
-    await import('./xiaoshi-device-update-card.js');
-    await import('./xiaoshi-device-offline-card.js');
     await import('./xiaoshi-device-balance-card.js');
     await import('./xiaoshi-device-todo-card.js');
     await import('./xiaoshi-device-consumables-card.js');
+    await import('./xiaoshi-device-consumables-button.js');
+    await import('./xiaoshi-device-ha-info-card.js'); 
+    await import('./xiaoshi-device-update-card.js');
+    await import('./xiaoshi-device-offline-card.js');
     
     window.customCards = window.customCards || [];
     window.customCards.push(...cardConfigs);
