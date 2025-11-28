@@ -1524,7 +1524,7 @@ class XiaoshiConsumablesButton extends LitElement {
 
       .device-name {
         color: var(--fg-color, #000);
-        font-size: 9px;
+        font-size: 11px;
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
@@ -1534,7 +1534,7 @@ class XiaoshiConsumablesButton extends LitElement {
 
       .device-value {
         color: var(--fg-color, #000);
-        font-size: 9px;
+        font-size: 11px;
         flex-shrink: 0;
         font-weight: bold;
         max-width: 45%;
@@ -1548,7 +1548,7 @@ class XiaoshiConsumablesButton extends LitElement {
       }
 
       .device-unit {
-        font-size: 9px;
+        font-size: 11px;
         color: var(--fg-color, #000);
         margin-left: 0.5px;
         font-weight: bold;
@@ -1730,12 +1730,12 @@ class XiaoshiConsumablesButton extends LitElement {
   }
 
   _handleRefresh() {
+    this._handleClick();
     this._loadOilPriceData();
-    navigator.vibrate(50);
   }
 
   _handleEntityClick(entity) {
-    navigator.vibrate(50);
+    this._handleClick();
     // 点击实体时打开实体详情页
     if (entity.entity_id) {
       const evt = new Event('hass-more-info', { composed: true });
@@ -1744,7 +1744,18 @@ class XiaoshiConsumablesButton extends LitElement {
     }
   }
   /*button新元素 开始*/
-  
+
+  _handleClick(){
+    if (navigator.vibrate) {
+      navigator.vibrate(50);
+    }
+    else if (navigator.webkitVibrate) {
+        navigator.webkitVibrate(50); 
+    }
+    else {
+    }
+  }
+
   // 获取默认弹出样式
   _getDefaultPopupStyle() {
     return '--mdc-theme-surface: rgba(0,0,0,0)\n--dialog-backdrop-filter: blur(10px) brightness(1);';
@@ -1892,7 +1903,7 @@ class XiaoshiConsumablesButton extends LitElement {
         });
       }
     }
-    navigator.vibrate(50);
+    this._handleClick();
   }
   
   // 备选的弹出方案
