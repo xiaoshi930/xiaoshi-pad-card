@@ -588,9 +588,9 @@ export class XiaoshiUpdateCard extends LitElement {
   }
 
   _handleConfirmUpdate(update, event) {
-    this._handleClick();
     event.stopPropagation(); // 阻止事件冒泡
     event.preventDefault(); // 阻止默认行为
+    this._handleClick();
     
     // 弹出确认对话框
     const confirmed = confirm(`确认要更新 ${update.name} 吗？\n当前版本: ${update.current_version}\n最新版本: ${update.latest_version}`);
@@ -865,7 +865,7 @@ export class XiaoshiUpdateCard extends LitElement {
                         <div class="device-name">${update.name}</div>
                         <div class="device-details">
                           当前版本: ${update.current_version} → 最新版本: ${update.latest_version}
-                          ${update.skipped_version ? html`<span style="color: #ff9800;"> 已跳过版本: ${update.skipped_version}</span>` : ''}
+                          ${update.skipped_version ? html`<br><span style="color: #ff9800;">已跳过版本: ${update.skipped_version}</span>` : ''}
                         </div>
                       </div>
                       <div class="device-last-seen" @click=${(e) => this._handleConfirmUpdate(update, e)}>
@@ -890,7 +890,7 @@ export class XiaoshiUpdateCard extends LitElement {
                         <div class="device-name">${update.name}</div>
                         <div class="device-details">
                           当前版本: ${update.current_version} → 最新版本: ${update.latest_version}
-                          ${update.skipped_version ? html`<span style="color: #ff9800;"> 已跳过版本: ${update.skipped_version}</span>` : ''}
+                          ${update.skipped_version ? html`<br><span style="color: #ff9800;"> 已跳过版本: ${update.skipped_version}</span>` : ''}
                         </div>
                       </div>
                       <div class="device-last-seen" @click=${(e) => this._handleConfirmUpdate(update, e)}>
