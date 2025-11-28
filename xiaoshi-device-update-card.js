@@ -159,7 +159,6 @@ export class XiaoshiUpdateCard extends LitElement {
         align-items: center;
         padding: 16px;
         background: var(--bg-color, #fff);
-        
         border-radius: 12px;
       }
 
@@ -189,7 +188,6 @@ export class XiaoshiUpdateCard extends LitElement {
         display: flex;
         align-items: center;
         justify-content: center;
-
       }
 
       /*标题统计数字*/
@@ -271,7 +269,8 @@ export class XiaoshiUpdateCard extends LitElement {
         align-items: center;
         padding: 0px;
         border-bottom: 1px solid rgb(150,150,150,0.2);
-        margin: 0 24px 8px 32px;
+        margin: 0 32px 4px 32px;
+        padding: 4px 0 0 0;
       }
 
       /*设备、实体明细背景*/
@@ -279,7 +278,7 @@ export class XiaoshiUpdateCard extends LitElement {
         flex: 1;
         overflow-y: auto;
         min-height: 0;
-        padding: 0 0 8px  0;
+        padding: 4px 0;
       }
 
       .device-icon {
@@ -294,7 +293,7 @@ export class XiaoshiUpdateCard extends LitElement {
       .device-name {
         font-weight: 500;
         color: var(--fg-color, #000);
-        margin-bottom: 4px;
+        margin: 2px 0;
       }
 
       .device-entity {
@@ -306,7 +305,6 @@ export class XiaoshiUpdateCard extends LitElement {
       .device-details {
         font-size: 10px;
         color: var(--fg-color, #000);
-        margin-top: 4px;
       }
 
       .device-last-seen { 
@@ -327,13 +325,13 @@ export class XiaoshiUpdateCard extends LitElement {
 
       .no-devices {
         text-align: center;
-        padding: 8px 0 0 0;
+        padding: 8px 0;
         color: var(--fg-color, #000);
       }
 
       .loading {
         text-align: center;
-        padding: 0px;
+        padding: 10px 0px;
         color: var(--fg-color, #000);
       }
 
@@ -409,12 +407,12 @@ export class XiaoshiUpdateCard extends LitElement {
       /* 备份信息独立容器 */
       .backup-info {
         padding: 4px 0 4px 16px;
-        margin: 0 16px 0 30px;
-        border-bottom: 1px solid rgb(150,150,150,0.2);
+        margin: 0 32px 8px 32px;
         display: grid;
         grid-template-columns: auto auto auto;
         gap: 4px;
         align-items: center;
+        border-bottom: 1px solid rgb(150,150,150,0.2);
       }
     `;
   }
@@ -466,6 +464,17 @@ export class XiaoshiUpdateCard extends LitElement {
     super.disconnectedCallback();
     if (this._refreshInterval) {
       clearInterval(this._refreshInterval);
+    }
+  }
+
+  _handleEntityClick(entity) {
+    navigator.vibrate(50);
+    // 点击实体时打开实体详情页
+    if (entity.entity_id) {
+      // 使用您建议的第一种方式
+      const evt = new Event('hass-more-info', { composed: true });
+      evt.detail = { entityId: entity.entity_id };
+      this.dispatchEvent(evt);
     }
   }
 
@@ -542,14 +551,10 @@ export class XiaoshiUpdateCard extends LitElement {
     this._loading = false;
   }
 
-
-
   _handleRefresh() {
     this._loadUpdateData();
     navigator.vibrate(50);
   }
-
-
   
   _handleUpdateClick(update) {
     navigator.vibrate(50);
@@ -581,6 +586,10 @@ export class XiaoshiUpdateCard extends LitElement {
     
     if (confirmed) {
       this._executeUpdate(update);
+      // 延迟3秒后刷新数据，给更新操作足够时间完成
+      setTimeout(() => {
+        this._loadUpdateData();
+      }, 1000);
     }
   }
 
@@ -822,19 +831,9 @@ export class XiaoshiUpdateCard extends LitElement {
           ${this._renderHAVersionInfo()}
         </div>
         
-        <!-- 备份信息 -->
-        <div class="section-divider">
-          <div class="section-title">
-            <span> • 备份信息</span>
-          </div>
-        </div>
-        <div class="backup-info">
-          ${this._renderBackupInfo()}
-        </div>
-        
         <div class="devices-list">
           ${this._loading ? 
-            html`<div class="loading">加载中...</div>` :
+            html`<div class="loading">HA版本信息加载中...</div>` :
             
             (this._haUpdates.length === 0 && this._otherUpdates.length === 0) ? 
               html`<div class="no-devices">✅ 所有组件都是最新版本</div>` :
@@ -847,7 +846,7 @@ export class XiaoshiUpdateCard extends LitElement {
                     </div>
                   </div>
                   ${this._haUpdates.map(update => html`
-                    <div class="device-item">
+                    <div class="device-item" @click=${() => this._handleEntityClick(update)}>
                       <div class="device-icon">
                         <ha-icon icon="${update.icon}"></ha-icon>
                       </div>
@@ -855,7 +854,7 @@ export class XiaoshiUpdateCard extends LitElement {
                         <div class="device-name">${update.name}</div>
                         <div class="device-details">
                           当前版本: ${update.current_version} → 最新版本: ${update.latest_version}
-                          ${update.skipped_version ? html`<br><span style="color: #ff9800;">已跳过版本: ${update.skipped_version}</span>` : ''}
+                          ${update.skipped_version ? html`<span style="color: #ff9800;"> 已跳过版本: ${update.skipped_version}</span>` : ''}
                         </div>
                       </div>
                       <div class="device-last-seen" @click=${(e) => this._handleConfirmUpdate(update, e)}>
@@ -867,12 +866,12 @@ export class XiaoshiUpdateCard extends LitElement {
                 ${this._otherUpdates.length > 0 ? html`
                   <div class="section-divider">
                     <div class="section-title">
-                      <span> • 加载项、卡片更新</span>
+                      <span> • HACS更新</span>
                       <span class="section-count ${this._otherUpdates.length > 0 ? 'non-zero' : 'zero'}">${this._otherUpdates.length}</span>
                     </div>
                   </div>
                   ${this._otherUpdates.map(update => html`
-                    <div class="device-item">
+                    <div class="device-item" @click=${() => this._handleEntityClick(update)}>
                       <div class="device-icon">
                         <ha-icon icon="${update.icon}"></ha-icon>
                       </div>
@@ -880,7 +879,7 @@ export class XiaoshiUpdateCard extends LitElement {
                         <div class="device-name">${update.name}</div>
                         <div class="device-details">
                           当前版本: ${update.current_version} → 最新版本: ${update.latest_version}
-                          ${update.skipped_version ? html`<br><span style="color: #ff9800;">已跳过版本: ${update.skipped_version}</span>` : ''}
+                          ${update.skipped_version ? html`<span style="color: #ff9800;"> 已跳过版本: ${update.skipped_version}</span>` : ''}
                         </div>
                       </div>
                       <div class="device-last-seen" @click=${(e) => this._handleConfirmUpdate(update, e)}>
@@ -890,8 +889,18 @@ export class XiaoshiUpdateCard extends LitElement {
                   `)}\n                ` : ''}
               `
           }
+
         </div>
-      </ha-card>
+        <!-- 备份信息 -->
+        <div class="section-divider">
+          <div class="section-title">
+            <span> • 备份信息</span>
+          </div>
+        </div>
+        <div class="backup-info">
+          ${this._renderBackupInfo()}
+        </div>
+        </ha-card>
     `;
   }
 
