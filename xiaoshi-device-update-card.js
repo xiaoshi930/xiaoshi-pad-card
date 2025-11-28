@@ -468,13 +468,24 @@ export class XiaoshiUpdateCard extends LitElement {
   }
 
   _handleEntityClick(entity) {
-    navigator.vibrate(50);
+    this._handleClick();
     // 点击实体时打开实体详情页
     if (entity.entity_id) {
       // 使用您建议的第一种方式
       const evt = new Event('hass-more-info', { composed: true });
       evt.detail = { entityId: entity.entity_id };
       this.dispatchEvent(evt);
+    }
+  }
+
+  _handleClick(){
+    if (navigator.vibrate) {
+      navigator.vibrate(50);
+    }
+    else if (navigator.webkitVibrate) {
+        navigator.webkitVibrate(50); 
+    }
+    else {
     }
   }
 
@@ -552,12 +563,12 @@ export class XiaoshiUpdateCard extends LitElement {
   }
 
   _handleRefresh() {
+    this._handleClick();
     this._loadUpdateData();
-    navigator.vibrate(50);
   }
   
   _handleUpdateClick(update) {
-    navigator.vibrate(50);
+    this._handleClick();
     // 点击更新项时弹出实体详情
     
     // 如果有entity_id，弹出实体详情
@@ -577,9 +588,9 @@ export class XiaoshiUpdateCard extends LitElement {
   }
 
   _handleConfirmUpdate(update, event) {
+    this._handleClick();
     event.stopPropagation(); // 阻止事件冒泡
     event.preventDefault(); // 阻止默认行为
-    navigator.vibrate(50);
     
     // 弹出确认对话框
     const confirmed = confirm(`确认要更新 ${update.name} 吗？\n当前版本: ${update.current_version}\n最新版本: ${update.latest_version}`);
