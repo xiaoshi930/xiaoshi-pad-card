@@ -766,6 +766,14 @@ export class XiaoshiHaInfoCard extends LitElement {
     if (entityId.startsWith('climate.')) return 'mdi:thermostat';
     if (entityId.startsWith('cover.')) return 'mdi:window-shutter';
     if (entityId.startsWith('weather.')) return 'mdi:weather-cloudy';
+    if (entityId.startsWith('input_select.')) return 'mdi:form-select';
+    if (entityId.startsWith('select.')) return 'mdi:form-select';
+    if (entityId.startsWith('input_text.')) return 'mdi:form-textbox';
+    if (entityId.startsWith('text.')) return 'mdi:form-textbox';
+    if (entityId.startsWith('button.')) return 'mdi:button-pointer';
+    if (entityId.startsWith('event.')) return 'mdi:gesture-tap-button';
+    if (entityId.startsWith('device_tracker.')) return 'mdi:lan-connect';
+    if (entityId.startsWith('notify.')) return 'mdi:message';
     return 'mdi:help-circle';
   }
 
@@ -916,6 +924,12 @@ export class XiaoshiHaInfoCard extends LitElement {
                 if (skippedVersion !== null && skippedVersion === attributes.latest_version) {
                   return; // 跳过此更新
                 }
+              }
+              
+              // 新增规则：如果skipped_version为null情况下，当latest_version !== installed_version时，
+              // 且实体状态为off时，有可能是安装的版本比latest_version还高，这种不算更新的实体
+              if (attributes.skipped_version === null && entity.state === 'off') {
+                return; // 跳过此更新
               }
               
               const updateData = {
@@ -1261,7 +1275,7 @@ export class XiaoshiHaInfoCard extends LitElement {
                         <div class="device-name">${update.name}</div>
                         <div class="device-details">
                           当前版本: ${update.current_version} → 最新版本: ${update.latest_version}
-                          ${update.skipped_version ? html`<span style="color: #ff9800;"> 已跳过版本: ${update.skipped_version}</span>` : ''}
+                          ${update.skipped_version ? html`<br><span style="color: #ff9800;">已跳过版本: ${update.skipped_version}</span>` : ''}
                         </div>
                       </div>
                       <div class="device-last-seen-update" @click=${(e) => this._handleConfirmUpdate(update, e)}>
@@ -1286,7 +1300,7 @@ export class XiaoshiHaInfoCard extends LitElement {
                         <div class="device-name">${update.name}</div>
                         <div class="device-details">
                           当前版本: ${update.current_version} → 最新版本: ${update.latest_version}
-                          ${update.skipped_version ? html`<span style="color: #ff9800;"> 已跳过版本: ${update.skipped_version}</span>` : ''}
+                          ${update.skipped_version ? html`<br><span style="color: #ff9800;">已跳过版本: ${update.skipped_version}</span>` : ''}
                         </div>
                       </div>
                       <div class="device-last-seen-update" @click=${(e) => this._handleConfirmUpdate(update, e)}>
