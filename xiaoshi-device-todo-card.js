@@ -941,17 +941,28 @@ class XiaoshiTodoCard extends LitElement {
   }
 
   _handleRefresh() {
+    this._handleClick();
     this._loadTodoData();
-    navigator.vibrate(50);
   }
 
   _handleEntityClick(entity) {
-    navigator.vibrate(50);
+    this._handleClick();
     // 点击实体时打开实体详情页
     if (entity.entity_id) {
       const evt = new Event('hass-more-info', { composed: true });
       evt.detail = { entityId: entity.entity_id };
       this.dispatchEvent(evt);
+    }
+  }
+
+  _handleClick(){
+    if (navigator.vibrate) {
+      navigator.vibrate(50);
+    }
+    else if (navigator.webkitVibrate) {
+        navigator.webkitVibrate(50); 
+    }
+    else {
     }
   }
 
