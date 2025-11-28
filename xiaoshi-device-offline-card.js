@@ -667,12 +667,12 @@ export class XiaoshiOfflineCard extends LitElement {
   }
 
   _handleRefresh() {
+    this._handleClick();
     this._loadOfflineDevices();
-    navigator.vibrate(50);
   }
 
   _handleDeviceClick(device) {
-    navigator.vibrate(50);
+    this._handleClick();
     // 点击设备时跳转到设备详情页
     if (device.device_id) {
       // 先关闭当前弹窗/界面
@@ -696,7 +696,7 @@ export class XiaoshiOfflineCard extends LitElement {
   }
   
   _handleEntityClick(entity) {
-    navigator.vibrate(50);
+    this._handleClick();
     // 点击实体时打开实体详情页
     if (entity.entity_id) {
       // 使用您建议的第一种方式
@@ -705,7 +705,18 @@ export class XiaoshiOfflineCard extends LitElement {
       this.dispatchEvent(evt);
     }
   }
-  
+
+  _handleClick(){
+    if (navigator.vibrate) {
+      navigator.vibrate(50);
+    }
+    else if (navigator.webkitVibrate) {
+        navigator.webkitVibrate(50); 
+    }
+    else {
+    }
+  }
+
   _closeCurrentDialog() {
     // 查找并关闭当前可能的弹窗或对话框
     const dialogs = document.querySelectorAll('ha-dialog, .mdc-dialog, paper-dialog, vaadin-dialog');
