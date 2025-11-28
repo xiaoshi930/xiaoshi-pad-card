@@ -983,9 +983,9 @@ export class XiaoshiHaInfoCard extends LitElement {
   }
 
   _handleConfirmUpdate(update, event) {
-    this._handleClick();
     event.stopPropagation(); // 阻止事件冒泡
     event.preventDefault(); // 阻止默认行为
+    this._handleClick();
     
     // 弹出确认对话框
     const confirmed = confirm(`确认要更新 ${update.name} 吗？\n当前版本: ${update.current_version}\n最新版本: ${update.latest_version}`);
