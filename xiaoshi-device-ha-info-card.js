@@ -788,13 +788,13 @@ export class XiaoshiHaInfoCard extends LitElement {
   }
 
   _handleRefresh() {
+    this._handleClick();
     this._loadOfflineDevices();
-    navigator.vibrate(50);
   }
 
   _handleDeviceClick(device) {
-    navigator.vibrate(50);
     // 点击设备时跳转到设备详情页
+    this._handleClick();
     if (device.device_id) {
       // 先关闭当前弹窗/界面
       this._closeCurrentDialog();
@@ -817,7 +817,7 @@ export class XiaoshiHaInfoCard extends LitElement {
   }
   
   _handleEntityClick(entity) {
-    navigator.vibrate(50);
+    this._handleClick();
     // 点击实体时打开实体详情页
     if (entity.entity_id) {
       // 使用您建议的第一种方式
@@ -826,7 +826,18 @@ export class XiaoshiHaInfoCard extends LitElement {
       this.dispatchEvent(evt);
     }
   }
-  
+
+  _handleClick(){
+    if (navigator.vibrate) {
+      navigator.vibrate(50);
+    }
+    else if (navigator.webkitVibrate) {
+        navigator.webkitVibrate(50); 
+    }
+    else {
+    }
+  }
+
   _closeCurrentDialog() {
     // 查找并关闭当前可能的弹窗或对话框
     const dialogs = document.querySelectorAll('ha-dialog, .mdc-dialog, paper-dialog, vaadin-dialog');
@@ -946,14 +957,14 @@ export class XiaoshiHaInfoCard extends LitElement {
   }
 
   _handleRefresh() {
+    this._handleClick();
     this._loadUpdateData();
     this._loadOfflineDevices();
-    navigator.vibrate(50);
   }
   
   _handleUpdateClick(update) {
-    navigator.vibrate(50);
     // 点击更新项时弹出实体详情
+    this._handleClick();
     
     // 如果有entity_id，弹出实体详情
     if (update.entity_id) {
@@ -972,9 +983,9 @@ export class XiaoshiHaInfoCard extends LitElement {
   }
 
   _handleConfirmUpdate(update, event) {
+    this._handleClick();
     event.stopPropagation(); // 阻止事件冒泡
     event.preventDefault(); // 阻止默认行为
-    navigator.vibrate(50);
     
     // 弹出确认对话框
     const confirmed = confirm(`确认要更新 ${update.name} 吗？\n当前版本: ${update.current_version}\n最新版本: ${update.latest_version}`);
@@ -986,6 +997,7 @@ export class XiaoshiHaInfoCard extends LitElement {
         this._loadUpdateData();
       }, 1000);
     }
+
   }
 
   _executeUpdate(update) {
