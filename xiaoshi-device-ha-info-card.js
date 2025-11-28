@@ -981,6 +981,10 @@ export class XiaoshiHaInfoCard extends LitElement {
     
     if (confirmed) {
       this._executeUpdate(update);
+      // 延迟3秒后刷新数据，给更新操作足够时间完成
+      setTimeout(() => {
+        this._loadUpdateData();
+      }, 1000);
     }
   }
 
