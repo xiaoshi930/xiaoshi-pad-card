@@ -523,6 +523,11 @@ export class XiaoshiUpdateCard extends LitElement {
                   return; // 跳过此更新
                 }
               }
+              // 新增规则：如果skipped_version为null情况下，当latest_version !== installed_version时，
+              // 且实体状态为off时，有可能是安装的版本比latest_version还高，这种不算更新的实体
+              if (attributes.skipped_version === null && entity.state === 'off') {
+                return; // 跳过此更新
+              }
               
               const updateData = {
                 name: attributes.friendly_name || entity.entity_id.replace('update.', ''),
