@@ -1,4 +1,4 @@
-console.info("%c 消逝卡-平板端 \n%c      v 0.1.3 ", "color: red; font-weight: bold; background: black", "color: white; font-weight: bold; background: black");
+console.info("%c 消逝卡-平板端 \n%c      v 0.1.4 ", "color: red; font-weight: bold; background: black", "color: white; font-weight: bold; background: black");
 
 const loadCards = async () => {
     await import('./xiaoshi-pad-grid-card.js');
