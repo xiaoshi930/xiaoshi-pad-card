@@ -906,7 +906,7 @@ class XiaoshiConsumablesCard extends LitElement {
 
       .device-name {
         color: var(--fg-color, #000);
-        font-size: 9px;
+        font-size: 11px;
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
@@ -916,7 +916,7 @@ class XiaoshiConsumablesCard extends LitElement {
 
       .device-value {
         color: var(--fg-color, #000);
-        font-size: 9px;
+        font-size: 11px;
         flex-shrink: 0;
         font-weight: bold;
         max-width: 45%;
@@ -930,7 +930,7 @@ class XiaoshiConsumablesCard extends LitElement {
       }
 
       .device-unit {
-        font-size: 9px;
+        font-size: 11px;
         color: var(--fg-color, #000);
         margin-left: 0.5px;
         font-weight: bold;
@@ -1112,17 +1112,28 @@ class XiaoshiConsumablesCard extends LitElement {
   }
 
   _handleRefresh() {
+    this._handleClick();
     this._loadOilPriceData();
-    navigator.vibrate(50);
   }
 
   _handleEntityClick(entity) {
-    navigator.vibrate(50);
+    this._handleClick();
     // 点击实体时打开实体详情页
     if (entity.entity_id) {
       const evt = new Event('hass-more-info', { composed: true });
       evt.detail = { entityId: entity.entity_id };
       this.dispatchEvent(evt);
+    }
+  }
+
+  _handleClick(){
+    if (navigator.vibrate) {
+      navigator.vibrate(50);
+    }
+    else if (navigator.webkitVibrate) {
+        navigator.webkitVibrate(50); 
+    }
+    else {
     }
   }
 
