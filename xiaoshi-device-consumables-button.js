@@ -291,9 +291,17 @@ class XiaoshiConsumablesButtonEditor extends LitElement {
         </div>
 
         <div class="form-group">
-          <label> </label>
-          <label>👇👇👇下面是弹出卡片内容👇👇👇</label>
-          <label> </label>
+          <label>👇👇👇下方弹出的卡片可增加的其他卡片👇👇👇</label>
+          <textarea 
+            @change=${this._entityChanged}
+            .value=${this.config.other_cards || ''}
+            name="other_cards"
+            placeholder='# 示例配置：添加button卡片
+- type: custom:button-card
+  template: 测试模板(最好引用模板，否则大概率会报错)
+- type: custom:button-card
+  template: 测试模板(最好引用模板，否则大概率会报错)'>
+          </textarea>
         </div>
 
         <div class="checkbox-group">
@@ -301,11 +309,19 @@ class XiaoshiConsumablesButtonEditor extends LitElement {
             type="checkbox" 
             class="checkbox-input"
             @change=${this._entityChanged}
-            .checked=${this.config.show_preview !== false}
-            name="show_preview"
-            id="show_preview"
+            .checked=${this.config.no_preview === true}
+            name="no_preview"
+            id="no_preview"
           />
-          <label for="show_preview" class="checkbox-label" style="color: red;"> 弹出卡片预览（正式使用时取消勾选）</label>
+          <label for="no_preview" class="checkbox-label" style="color: red;"> 
+            📻显示预览📻（ 请先勾选测试显示效果 ）
+          </label>
+        </div>
+
+        <div class="form-group">
+          <label> </label>
+          <label>👇👇👇下方是弹出的主卡配置项👇👇👇</label>
+          <label> </label>
         </div>
 
         <!-- button新元素 结束-->
@@ -532,17 +548,15 @@ class XiaoshiConsumablesButtonEditor extends LitElement {
           </div>
           <div class="help-text">
             搜索并选择要显示的设备耗材实体，支持多选。每个实体可以配置：<br>
-            • <strong>特殊实体显示：</strong>binary_sensor(off→正常,on→缺少), event(unknown→正常,其他→低电量)<br>
             • 属性名：留空使用实体状态，或输入属性名<br>
             • 名称重定义：勾选后可自定义显示名称<br>
             • 图标重定义：勾选后可自定义图标（如 mdi:phone）<br>
             • 单位重定义：勾选后可自定义单位（如 元、$、kWh 等）<br>
             • 预警条件：勾选后设置预警条件，支持 >10, >=10, <10, <=10, ==10, ==on, ==off, =="hello world" 等<br>
             • 换算：对数值进行数学运算，支持 +10, -10, *1.5, /2 等<br>
-            • 未勾选重定义时，将使用实体的原始属性值
+            </div>
           </div>
         </div>
-      </div>
 
     `;
   }
@@ -553,7 +567,6 @@ class XiaoshiConsumablesButtonEditor extends LitElement {
     const { name, value, type, checked } = e.target;
     
     let finalValue;
-    
     // 处理复选框
     if (type === 'checkbox') {
       finalValue = checked;
@@ -769,10 +782,12 @@ class XiaoshiConsumablesButtonEditor extends LitElement {
     this._filteredEntities = [];
     this._showEntityList = false;
   }
-
+    
+  /*button新按钮方法 开始*/
   setConfig(config) {
-    this.config = config;
+    this.config = config || {};
   }
+  /*button新按钮方法 结束*/
 } 
 customElements.define('xiaoshi-consumables-button-editor', XiaoshiConsumablesButtonEditor);
 
@@ -1290,19 +1305,52 @@ class XiaoshiConsumablesButton extends LitElement {
     const tapAction = this.config.tap_action;
     
     if (!tapAction || tapAction !== 'none') {
-      // 默认 tap_action 行为：弹出耗材卡片
+      // 默认 tap_action 行为：弹出垂直堆叠卡片
       const excludedParams = ['type', 'button_height', 'button_width', 'button_font_size', 'button_icon_size', 'show_preview', 'tap_action'];
-      const cardConfig = {};
       
+      // 构建垂直堆叠卡片的内容
+      const cards = [];
+      
+      // 1. 添加耗材卡片
+      const consumablesCardConfig = {};
       Object.keys(this.config).forEach(key => {
-        if (!excludedParams.includes(key)) {
-          cardConfig[key] = this.config[key];
+        if (!excludedParams.includes(key) && key !== 'other_cards' && key !== 'no_preview') {
+          consumablesCardConfig[key] = this.config[key];
         }
       });
-  
-      const popupContent = {
+      
+      cards.push({
         type: 'custom:xiaoshi-consumables-card',
-        ...cardConfig
+        ...consumablesCardConfig
+      });
+      
+      // 2. 添加附加卡片
+      if (this.config.other_cards && this.config.other_cards.trim()) {
+        try {
+          const additionalCardsConfig = this._parseYamlCards(this.config.other_cards);
+          
+          // 为每个附加卡片传递 theme 值
+          const cardsWithTheme = additionalCardsConfig.map(card => {
+            // 如果卡片没有 theme 配置，则从当前卡片配置中传递
+            if (!card.theme && this.config.theme) {
+              return {
+                ...card,
+                theme: this.config.theme
+              };
+            }
+            return card;
+          });
+          
+          cards.push(...cardsWithTheme);
+        } catch (error) {
+          console.error('解析附加卡片配置失败:', error);
+        }
+      }
+      
+      // 创建垂直堆叠卡片
+      const popupContent = {
+        type: 'vertical-stack',
+        cards: cards
       };
       
       const popupStyle = this.config.popup_style || `
@@ -1320,6 +1368,156 @@ class XiaoshiConsumablesButton extends LitElement {
     }
     this._handleClick();
   }
+
+  _parseYamlCards(yamlString) {
+    try {
+      const lines = yamlString.split('\n');
+      const cards = [];
+      let currentCard = null;
+      let indentStack = [];
+      let contextStack = [];
+      
+      for (let i = 0; i < lines.length; i++) {
+        const line = lines[i];
+        const trimmed = line.trim();
+        
+        if (!trimmed || trimmed.startsWith('#')) continue;
+        
+        const indentLevel = line.length - line.trimStart().length;
+        if (trimmed.startsWith('- type')) {
+          if (currentCard) {
+            cards.push(currentCard);
+            currentCard = null;
+            indentStack = [];
+            contextStack = [];
+          }
+          const content = trimmed.substring(1).trim();
+          if (content.includes(':')) {
+            const [key, ...valueParts] = content.split(':');
+            const value = valueParts.join(':').trim();
+            currentCard = {};
+            this._setNestedValue(currentCard, key.trim(), this._parseValue(value));
+          } else {
+            currentCard = { type: content };
+          }
+          
+          indentStack = [indentLevel];
+          contextStack = [currentCard];
+        } else if (currentCard && trimmed.startsWith('-')) {
+          while (indentStack.length > 1 && indentLevel <= indentStack[indentStack.length - 1]) {
+            indentStack.pop();
+            contextStack.pop();
+          }
+          
+          let currentContext = contextStack[contextStack.length - 1];
+          const itemValue = trimmed.substring(1).trim();
+          
+          if (!Array.isArray(currentContext)) {
+            if (contextStack.length > 1) {
+              const parentContext = contextStack[contextStack.length - 2];
+              for (let key in parentContext) {
+                if (parentContext[key] === currentContext) {
+                  parentContext[key] = [];
+                  contextStack[contextStack.length - 1] = parentContext[key];
+                  currentContext = parentContext[key];
+                  break;
+                }
+              }
+            }
+          }
+          if (Array.isArray(currentContext)) {
+            if (itemValue.includes(':')) {
+              const [key, ...valueParts] = itemValue.split(':');
+              const value = valueParts.join(':').trim();
+              const obj = {};
+              obj[key.trim()] = this._parseValue(value);
+              currentContext.push(obj);
+            } else {
+              currentContext.push(this._parseValue(itemValue));
+            }
+          }
+        } else if (currentCard && trimmed.includes(':')) {
+          const [key, ...valueParts] = trimmed.split(':');
+          const value = valueParts.join(':').trim();
+          const keyName = key.trim();
+          
+          while (indentStack.length > 1 && indentLevel <= indentStack[indentStack.length - 1]) {
+            indentStack.pop();
+            contextStack.pop();
+          }
+          
+          const currentContext = contextStack[contextStack.length - 1];
+          
+          if (value) {
+            this._setNestedValue(currentContext, keyName, this._parseValue(value));
+          } else {
+            let nextLine = null, nextIndent = null;
+            for (let j = i + 1; j < lines.length; j++) {
+              const nextTrimmed = lines[j].trim();
+              if (nextTrimmed && !nextTrimmed.startsWith('#')) {
+                nextLine = nextTrimmed;
+                nextIndent = lines[j].length - lines[j].trimStart().length;
+                break;
+              }
+            }
+            
+            currentContext[keyName] = (nextLine && nextLine.startsWith('-') && nextIndent > indentLevel) 
+              ? [] : (currentContext[keyName] || {});
+            
+            indentStack.push(indentLevel);
+            contextStack.push(currentContext[keyName]);
+          }
+        }
+      }
+      
+      if (currentCard) cards.push(currentCard);
+      
+      return cards;
+    } catch (error) {
+      console.error('YAML解析错误:', error);
+      return [];
+    }
+  }
+  
+  _parseValue(value) {
+    if (!value) return '';
+    
+    // 移除引号
+    if ((value.startsWith('"') && value.endsWith('"')) || 
+        (value.startsWith("'") && value.endsWith("'"))) {
+      return value.slice(1, -1);
+    }
+    
+    // 尝试解析为数字
+    if (!isNaN(value) && value.trim() !== '') {
+      return Number(value);
+    }
+    
+    // 尝试解析为布尔值
+    if (value === 'true') return true;
+    if (value === 'false') return false;
+    if (value === 'null') return null;
+    
+    // 返回字符串
+    return value;
+  }
+  
+  _setNestedValue(obj, path, value) {
+    // 支持嵌套路径，如 "styles.card"
+    const keys = path.split('.');
+    let current = obj;
+    
+    for (let i = 0; i < keys.length - 1; i++) {
+      const key = keys[i];
+      if (!current[key] || typeof current[key] !== 'object') {
+        current[key] = {};
+      }
+      current = current[key];
+    }
+    
+    current[keys[keys.length - 1]] = value;
+  }
+
   /*button新元素 结束*/
   
   _renderDeviceItem(consumablesData) {
@@ -1448,7 +1646,6 @@ class XiaoshiConsumablesButton extends LitElement {
     return false;
   }
 
-
   render() {
     if (!this.hass) {
       return html`<div class="loading">等待Home Assistant连接...</div>`;
@@ -1483,7 +1680,7 @@ class XiaoshiConsumablesButton extends LitElement {
     }).length;
 
     /*button新元素 前9行和最后1行开始*/
-    const showPreview = this.config.show_preview !== false;
+    const showPreview = this.config.no_preview === true;
     
     return html`
       <div class="consumables-status" style="--fg-color: ${fgColor}; --bg-color: ${bgColor};" @click=${this._handleButtonClick}>
@@ -1528,9 +1725,11 @@ class XiaoshiConsumablesButton extends LitElement {
   }
 
   setConfig(config) {
-    this.config = config;
-    
     /*button新元素 开始*/
+    // 不设置默认值，只有明确配置时才添加 no_preview
+    this.config = {
+      ...config
+    };
     if (config.button_width) {
       this.style.setProperty('--button-width', config.button_width);
     } else {
@@ -1578,3 +1777,4 @@ class XiaoshiConsumablesButton extends LitElement {
   }
 }
 customElements.define('xiaoshi-consumables-button', XiaoshiConsumablesButton);
+
