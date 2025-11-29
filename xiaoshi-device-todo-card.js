@@ -1120,7 +1120,10 @@ class XiaoshiTodoCard extends LitElement {
                                 <input 
                                   type="checkbox" 
                                   .checked=${item.status === 'completed'}
-                                  @change=${(e) => this._updateTodoItem(todoData.entity_id, item.summary || item.uid, e.target.checked ? 'completed' : 'needs_action')}
+                                  @change=${(e) => {
+                                    this._updateTodoItem(todoData.entity_id, item.summary || item.uid, e.target.checked ? 'completed' : 'needs_action'); 
+                                    this._handleClick();
+                                  }}
                                   style="margin-right: 8px; margin-top: 2px;"
                                 />
                                 ${isEditing ? html`
@@ -1153,6 +1156,7 @@ class XiaoshiTodoCard extends LitElement {
                                         @input=${(e) => {
                                           this._editingItem.due = e.target.value;
                                           this.requestUpdate();
+                                          this._handleClick();
                                         }}
                                       />
                                       <button 
@@ -1161,6 +1165,7 @@ class XiaoshiTodoCard extends LitElement {
                                           this._editTodoItem(todoData.entity_id, item.summary || item.uid, this._editingItem.summary, this._editingItem.description, this._editingItem.due);
                                           this._editingItem = null;
                                           this.requestUpdate();
+                                          this._handleClick();
                                         }}
                                       >
                                         保存
@@ -1170,6 +1175,7 @@ class XiaoshiTodoCard extends LitElement {
                                         @click=${() => {
                                           this._editingItem = null;
                                           this.requestUpdate();
+                                          this._handleClick();
                                         }}
                                       >
                                         取消
@@ -1197,6 +1203,7 @@ class XiaoshiTodoCard extends LitElement {
                                         due: this._formatDateForInput(item.due) || ''
                                       };
                                       this.requestUpdate();
+                                      this._handleClick();
                                     }}
                                     style="margin-left: 8px; margin-top: 2px;"
                                     title="修改"
@@ -1206,7 +1213,10 @@ class XiaoshiTodoCard extends LitElement {
                                 ` : ''}
                                 <button 
                                   class="remove-btn" 
-                                  @click=${() => this._removeTodoItem(todoData.entity_id, item.summary || item.uid)}
+                                  @click=${() => {
+                                    this._removeTodoItem(todoData.entity_id, item.summary || item.uid);
+                                    this._handleClick();
+                                  }}
                                   style="margin-left: 4px; margin-top: 2px;"
                                   title="删除"
                                 >
@@ -1227,6 +1237,7 @@ class XiaoshiTodoCard extends LitElement {
                               [todoData.entity_id]: !this._expandedAddForm[todoData.entity_id]
                             };
                             this.requestUpdate();
+                            this._handleClick();
                           }}
                         >
                           ${this._expandedAddForm[todoData.entity_id] ? '收起' : '添加新待办事项'}
@@ -1274,6 +1285,7 @@ class XiaoshiTodoCard extends LitElement {
                                     descInput.value = '';
                                     dateInput.value = '';
                                   }
+                                  this._handleClick();
                                 }}
                               >
                                 添加
