@@ -1896,7 +1896,7 @@ class XiaoshiConsumablesButton extends LitElement {
         
         buttonHtml = html`
           <div class="consumables-status" style="--fg-color: ${fgColor}; --bg-color: ${buttonBgColor};" @click=${this._handleButtonClick}>
-            ${!hideIcon ? html`<ha-icon class="status-icon" icon="${buttonIcon}"></ha-icon>` : ''}
+            ${!hideIcon ? html`<ha-icon class="status-icon" style="color: ${fgColor};" icon="${buttonIcon}"></ha-icon>` : ''}
             ${displayText}
           </div>
         `;
@@ -1936,7 +1936,7 @@ class XiaoshiConsumablesButton extends LitElement {
         
         buttonHtml = html`
           <div class="consumables-status" style="--fg-color: ${textColor}; --bg-color: ${buttonBgColor};" @click=${this._handleButtonClick}>
-            ${!hideIcon ? html`<ha-icon class="status-icon" icon="${buttonIcon}"></ha-icon>` : ''}
+            ${!hideIcon ? html`<ha-icon class="status-icon" style="color: ${fgColor};" icon="${buttonIcon}"></ha-icon>` : ''}
             ${displayText}
           </div>
         `;
