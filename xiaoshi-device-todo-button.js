@@ -1663,7 +1663,7 @@ class XiaoshiTodoButton extends LitElement {
         
         buttonHtml = html`
           <div class="todo-status" style="--fg-color: ${fgColor}; --bg-color: ${buttonBgColor};" @click=${this._handleButtonClick}>
-            ${!hideIcon ? html`<ha-icon class="status-icon" icon="${buttonIcon}"></ha-icon>` : ''}
+            ${!hideIcon ? html`<ha-icon class="status-icon" style="color: ${fgColor};" icon="${buttonIcon}"></ha-icon>` : ''}
             ${displayText}
           </div>
         `;
@@ -1703,7 +1703,7 @@ class XiaoshiTodoButton extends LitElement {
         
         buttonHtml = html`
           <div class="todo-status" style="--fg-color: ${textColor}; --bg-color: ${buttonBgColor};" @click=${this._handleButtonClick}>
-            ${!hideIcon ? html`<ha-icon class="status-icon" icon="${buttonIcon}"></ha-icon>` : ''}
+            ${!hideIcon ? html`<ha-icon class="status-icon" style="color: ${fgColor};" icon="${buttonIcon}"></ha-icon>` : ''}
             ${displayText}
           </div>
         `;
