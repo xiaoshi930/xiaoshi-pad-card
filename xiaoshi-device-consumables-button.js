@@ -262,7 +262,6 @@ class XiaoshiConsumablesButtonEditor extends LitElement {
           </label>
         </div>
 
-
         <div class="form-group">
           <label>按钮显示文本
           <input 
@@ -295,10 +294,24 @@ class XiaoshiConsumablesButtonEditor extends LitElement {
             id="transparent_bg"
           />
           <label for="transparent_bg" class="checkbox-label"> 
-            透明背景（勾选后按钮背景透明）
+            （平板端特性）透明背景（勾选后按钮背景透明）
           </label>
         </div>
-
+    
+        <div class="checkbox-group">
+          <input 
+            type="checkbox" 
+            class="checkbox-input"
+            @change=${this._entityChanged}
+            .checked=${this.config.lock_white_fg === true}
+            name="lock_white_fg"
+            id="lock_white_fg"
+          />
+          <label for="lock_white_fg" class="checkbox-label"> 
+            （平板端特性）白色图标文字（勾选后锁定显示白色）
+          </label>
+        </div>
+    
         <div class="checkbox-group">
           <input 
             type="checkbox" 
@@ -309,10 +322,10 @@ class XiaoshiConsumablesButtonEditor extends LitElement {
             id="hide_icon"
           />
           <label for="hide_icon" class="checkbox-label"> 
-            隐藏图标（勾选后隐藏图标）
+          （ 平板端特性）隐藏图标（勾选后隐藏图标）
           </label>
         </div>
-
+    
         <div class="checkbox-group">
           <input 
             type="checkbox" 
@@ -323,10 +336,10 @@ class XiaoshiConsumablesButtonEditor extends LitElement {
             id="hide_colon"
           />
           <label for="hide_colon" class="checkbox-label"> 
-            隐藏冒号（勾选后不显示冒号，改为空格）
+          （平板端特性）隐藏冒号（勾选后不显示冒号，改为空格）
           </label>
         </div>
-
+    
         <div class="checkbox-group">
           <input 
             type="checkbox" 
@@ -337,7 +350,7 @@ class XiaoshiConsumablesButtonEditor extends LitElement {
             id="hide_zero"
           />
           <label for="hide_zero" class="checkbox-label"> 
-            隐藏0值（勾选后数量为0时不显示数量）
+          （平板端特性）隐藏0值（勾选后数量为0时不显示数量）
           </label>
         </div>
 
@@ -1851,6 +1864,7 @@ class XiaoshiConsumablesButton extends LitElement {
     const hideColon = this.config.hide_colon === true;
     const hideZero = this.config.hide_zero === true;
     const autoHide = this.config.auto_hide === true;
+    const lockWhiteFg = this.config.lock_white_fg === true;
     const buttonText = this.config.button_text || '耗材';
     const buttonIcon = this.config.button_icon || 'mdi:battery-sync';
     
@@ -1877,6 +1891,10 @@ class XiaoshiConsumablesButton extends LitElement {
         `;
       } else {
         // 普通模式
+        // 应用锁定白色功能
+        const iconColor = lockWhiteFg ? 'rgb(255, 255, 255)' : fgColor;
+        const textColor = lockWhiteFg ? 'rgb(255, 255, 255)' : fgColor;
+        
         // 构建显示文本
         let displayText = buttonText;
         
@@ -1896,8 +1914,8 @@ class XiaoshiConsumablesButton extends LitElement {
         }
         
         buttonHtml = html`
-          <div class="consumables-status" style="--fg-color: ${fgColor}; --bg-color: ${buttonBgColor};" @click=${this._handleButtonClick}>
-            ${!hideIcon ? html`<ha-icon class="status-icon" style="color: ${fgColor};" icon="${buttonIcon}"></ha-icon>` : ''}
+          <div class="consumables-status" style="--fg-color: ${textColor}; --bg-color: ${buttonBgColor};" @click=${this._handleButtonClick}>
+            ${!hideIcon ? html`<ha-icon class="status-icon" style="color: ${iconColor};" icon="${buttonIcon}"></ha-icon>` : ''}
             ${displayText}
           </div>
         `;
@@ -1915,7 +1933,17 @@ class XiaoshiConsumablesButton extends LitElement {
         `;
       } else {
         // 普通模式：显示文本和数量
-        const textColor = warningCount === 0 ? fgColor : 'rgb(255, 0, 0)';
+        // 应用锁定白色功能，但预警颜色（红色）不受影响
+        let textColor, iconColor;
+        if (warningCount === 0) {
+          // 非预警状态：根据锁定白色设置决定颜色
+          textColor = lockWhiteFg ? 'rgb(255, 255, 255)' : fgColor;
+          iconColor = lockWhiteFg ? 'rgb(255, 255, 255)' : fgColor;
+        } else {
+          // 预警状态：始终使用红色，不受锁定白色影响
+          textColor = 'rgb(255, 0, 0)';
+          iconColor = lockWhiteFg ? 'rgb(255, 255, 255)' : fgColor;
+        }
         
         // 构建显示文本
         let displayText = buttonText;
@@ -1937,7 +1965,7 @@ class XiaoshiConsumablesButton extends LitElement {
         
         buttonHtml = html`
           <div class="consumables-status" style="--fg-color: ${textColor}; --bg-color: ${buttonBgColor};" @click=${this._handleButtonClick}>
-            ${!hideIcon ? html`<ha-icon class="status-icon" style="color: ${fgColor};" icon="${buttonIcon}"></ha-icon>` : ''}
+            ${!hideIcon ? html`<ha-icon class="status-icon" style="color: ${iconColor};" icon="${buttonIcon}"></ha-icon>` : ''}
             ${displayText}
           </div>
         `;
