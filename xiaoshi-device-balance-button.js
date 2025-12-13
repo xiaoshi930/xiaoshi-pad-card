@@ -216,175 +216,219 @@ class XiaoshiBalanceButtonEditor extends LitElement {
     if (!this.hass) return html``;
 
     return html`
+
       <div class="form">
 
       <!-- button新元素 开始-->
-        <div class="form-group">
-          <label>按钮显示图标
+
+      <div class="form-group">
+        <label>显示模式</label>
+        <select 
+          @change=${this._entityChanged}
+          .value=${this.config.display_mode || 'min_value'}
+          name="display_mode"
+        >
+          <option value="min_value">显示最小值</option>
+          <option value="specific_entity">显示指定实体</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>小数点精度：控制显示的小数位数，默认1位</label>
+        <input 
+          type="number" 
+          @change=${this._entityChanged}
+          .value=${this.config.decimal_precision !== undefined ? this.config.decimal_precision : '1'}
+          name="decimal_precision"
+          placeholder="默认1"
+          min="0"
+          max="10"
+          step="1"
+        />
+      </div>
+
+      <div class="form-group" style="${(this.config.display_mode || 'min_value') === 'specific_entity' ? '' : 'display: none;'}" id="specific_entity_group">
+        <label>指定显示的实体</label>
+        <div class="entity-selector">
           <input 
             type="text" 
-            @change=${this._entityChanged}
-            .value=${this.config.button_icon !== undefined ? this.config.button_icon : 'mdi:cellphone'}
-            name="button_icon"
-            placeholder="mdi:cellphone"
-          /></label>
-        </div>
-
-        <div class="form-group">
-          <label>显示模式</label>
-          <select 
-            @change=${this._entityChanged}
-            .value=${this.config.display_mode || 'min_value'}
-            name="display_mode"
-          >
-            <option value="min_value">显示最小值</option>
-            <option value="specific_entity">显示指定实体</option>
-          </select>
-        </div>
-
-        <div class="form-group">
-          <label>小数点精度：控制显示的小数位数，默认1位</label>
-          <input 
-            type="number" 
-            @change=${this._entityChanged}
-            .value=${this.config.decimal_precision !== undefined ? this.config.decimal_precision : '1'}
-            name="decimal_precision"
-            placeholder="默认1"
-            min="0"
-            max="10"
-            step="1"
+            @input=${this._onSpecificEntitySearch}
+            @focus=${this._onSpecificEntitySearch}
+            .value=${this._showSpecificEntityList ? (this._specificSearchTerm || '') : this._getSpecificEntityDisplayName()}
+            placeholder="搜索实体..."
+            class="entity-search-input"
           />
-        </div>
-
-        <div class="form-group" style="${(this.config.display_mode || 'min_value') === 'specific_entity' ? '' : 'display: none;'}" id="specific_entity_group">
-          <label>指定显示的实体</label>
-          <div class="entity-selector">
-            <input 
-              type="text" 
-              @input=${this._onSpecificEntitySearch}
-              @focus=${this._onSpecificEntitySearch}
-              .value=${this._showSpecificEntityList ? (this._specificSearchTerm || '') : this._getSpecificEntityDisplayName()}
-              placeholder="搜索实体..."
-              class="entity-search-input"
-            />
-            ${this._showSpecificEntityList ? html`
-              <div class="entity-dropdown">
-                ${this._specificFilteredEntities.map(entity => html`
-                  <div 
-                    class="entity-option ${this.config.specific_entity_id === entity.entity_id ? 'selected' : ''}"
-                    @click=${() => this._selectSpecificEntity(entity.entity_id)}
-                  >
-                    <div class="entity-info">
-                      <div class="entity-details">
-                        <div class="entity-name">${entity.attributes.friendly_name || entity.entity_id}</div>
-                        <div class="entity-id">${entity.entity_id}</div>
-                      </div>
-                      <ha-icon icon="${entity.attributes.icon || 'mdi:help-circle'}"></ha-icon>
+          ${this._showSpecificEntityList ? html`
+            <div class="entity-dropdown">
+              ${this._specificFilteredEntities.map(entity => html`
+                <div 
+                  class="entity-option ${this.config.specific_entity_id === entity.entity_id ? 'selected' : ''}"
+                  @click=${() => this._selectSpecificEntity(entity.entity_id)}
+                >
+                  <div class="entity-info">
+                    <div class="entity-details">
+                      <div class="entity-name">${entity.attributes.friendly_name || entity.entity_id}</div>
+                      <div class="entity-id">${entity.entity_id}</div>
                     </div>
-                    ${this.config.specific_entity_id === entity.entity_id ? 
-                      html`<ha-icon icon="mdi:check" class="check-icon"></ha-icon>` : ''}
+                    <ha-icon icon="${entity.attributes.icon || 'mdi:help-circle'}"></ha-icon>
                   </div>
-                `)}
-                ${this._specificFilteredEntities.length === 0 ? html`
-                  <div class="no-results">未找到匹配的实体</div>
-                ` : ''}
-              </div>
-            ` : ''}
-          </div>
+                  ${this.config.specific_entity_id === entity.entity_id ? 
+                    html`<ha-icon icon="mdi:check" class="check-icon"></ha-icon>` : ''}
+                </div>
+              `)}
+              ${this._specificFilteredEntities.length === 0 ? html`
+                <div class="no-results">未找到匹配的实体</div>
+              ` : ''}
+            </div>
+          ` : ''}
         </div>
+      </div>
 
-        <div class="form-group">
-          <label>按钮宽度：默认65px, 支持像素(px)和百分比(%)</label>
-          <input 
-            type="text" 
-            @change=${this._entityChanged}
-            .value=${this.config.button_width !== undefined ? this.config.button_width : '65px'}
-            name="button_width"
-            placeholder="默认65px"
+      <div class="form-group">
+        <label>按钮显示图标
+        <input 
+          type="text" 
+          @change=${this._entityChanged}
+          .value=${this.config.button_icon !== undefined ? this.config.button_icon : 'mdi:cellphone'}
+          name="button_icon"
+          placeholder="mdi:cellphone"
+        /></label>
+      </div>
+
+      <div class="checkbox-group">
+        <input 
+          type="checkbox" 
+          class="checkbox-input"
+          @change=${this._entityChanged}
+          .checked=${this.config.transparent_bg === true}
+          name="transparent_bg"
+          id="transparent_bg"
+        />
+        <label for="transparent_bg" class="checkbox-label"> 
+          （平板端特性）透明背景（勾选后按钮背景透明）
+        </label>
+      </div>
+
+      <div class="checkbox-group">
+        <input 
+          type="checkbox" 
+          class="checkbox-input"
+          @change=${this._entityChanged}
+          .checked=${this.config.lock_white_fg === true}
+          name="lock_white_fg"
+          id="lock_white_fg" 
+        />
+        <label for="lock_white_fg" class="checkbox-label"> 
+        （平板端特性）白色图标文字（勾选后锁定显示白色）
+        </label>
+      </div>
+
+      <div class="checkbox-group">
+        <input 
+          type="checkbox" 
+          class="checkbox-input"
+          @change=${this._entityChanged}
+          .checked=${this.config.hide_icon === true}
+          name="hide_icon"
+          id="hide_icon"
+        />
+        <label for="hide_icon" class="checkbox-label"> 
+        （ 平板端特性）隐藏图标（勾选后隐藏图标）
+        </label>
+      </div>
+
+      <div class="form-group">
+        <label>按钮宽度：默认65px, 支持像素(px)和百分比(%)</label>
+        <input 
+          type="text" 
+          @change=${this._entityChanged}
+          .value=${this.config.button_width !== undefined ? this.config.button_width : '65px'}
+          name="button_width"
+          placeholder="默认65px"
+        />
+      </div>
+
+      <div class="form-group">
+        <label>按钮高度：支持像素(px)、百分比(%)和视窗高度(vh)，默认24px</label>
+        <input 
+          type="text" 
+          @change=${this._entityChanged}
+          .value=${this.config.button_height !== undefined ? this.config.button_height : '24px'}
+          name="button_height"
+          placeholder="默认24px"
           />
-        </div>
+      </div>
+      
+      <div class="form-group">
+        <label>按钮文字大小：支持像素(px)，默认11px</label>
+        <input 
+          type="text" 
+          @change=${this._entityChanged}
+          .value=${this.config.button_font_size !== undefined ? this.config.button_font_size : '11px'}
+          name="button_font_size"
+          placeholder="默认11px"
+        />
+      </div>
+      
+      <div class="form-group">
+        <label>按钮图标大小：支持像素(px)，默认13px</label>
+        <input 
+          type="text" 
+          @change=${this._entityChanged}
+          .value=${this.config.button_icon_size !== undefined ? this.config.button_icon_size : '13px'}
+          name="button_icon_size"
+          placeholder="默认13px"
+        />
+      </div>
 
-        <div class="form-group">
-          <label>按钮高度：支持像素(px)、百分比(%)和视窗高度(vh)，默认24px</label>
-          <input 
-            type="text" 
-            @change=${this._entityChanged}
-            .value=${this.config.button_height !== undefined ? this.config.button_height : '24px'}
-            name="button_height"
-            placeholder="默认24px"
-            />
-        </div>
-        
-        <div class="form-group">
-          <label>按钮文字大小：支持像素(px)，默认11px</label>
-          <input 
-            type="text" 
-            @change=${this._entityChanged}
-            .value=${this.config.button_font_size !== undefined ? this.config.button_font_size : '11px'}
-            name="button_font_size"
-            placeholder="默认11px"
-          />
-        </div>
-        
-        <div class="form-group">
-          <label>按钮图标大小：支持像素(px)，默认13px</label>
-          <input 
-            type="text" 
-            @change=${this._entityChanged}
-            .value=${this.config.button_icon_size !== undefined ? this.config.button_icon_size : '13px'}
-            name="button_icon_size"
-            placeholder="默认13px"
-          />
-        </div>
+      <div class="form-group">
+        <label>点击动作：点击按钮时触发的动作</label>
+        <select 
+          @change=${this._entityChanged}
+          .value=${this.config.tap_action !== 'none' ? 'tap_action' : 'none'}
+          name="tap_action"
+        >
+          <option value="tap_action">弹出余额信息卡片（默认）</option>
+          <option value="none">无动作</option>
+        </select>
+      </div>
 
-        <div class="form-group">
-          <label>点击动作：点击按钮时触发的动作</label>
-          <select 
-            @change=${this._entityChanged}
-            .value=${this.config.tap_action !== 'none' ? 'tap_action' : 'none'}
-            name="tap_action"
-          >
-            <option value="tap_action">弹出余额信息卡片（默认）</option>
-            <option value="none">无动作</option>
-          </select>
-        </div>
-
-        <div class="form-group">
-          <label>👇👇👇下方弹出的卡片可增加的其他卡片👇👇👇</label>
-          <textarea 
-            @change=${this._entityChanged}
-            .value=${this.config.other_cards || ''}
-            name="other_cards"
-            placeholder='# 示例配置：添加button卡片
+      <div class="form-group">
+        <label>👇👇👇下方弹出的卡片可增加的其他卡片👇👇👇</label>
+        <textarea 
+          @change=${this._entityChanged}
+          .value=${this.config.other_cards || ''}
+          name="other_cards"
+          placeholder='# 示例配置：添加button卡片
 - type: custom:button-card
-  template: 测试模板(最好引用模板，否则大概率会报错)
+template: 测试模板(最好引用模板，否则大概率会报错)
 - type: custom:button-card
-  template: 测试模板(最好引用模板，否则大概率会报错)'>
-          </textarea>
-        </div>
+template: 测试模板(最好引用模板，否则大概率会报错)'>
+        </textarea>
+      </div>
 
-        <div class="checkbox-group">
-          <input 
-            type="checkbox" 
-            class="checkbox-input"
-            @change=${this._entityChanged}
-            .checked=${this.config.no_preview === true}
-            name="no_preview"
-            id="no_preview"
-          />
-          <label for="no_preview" class="checkbox-label" style="color: red;"> 
-            📻显示预览📻（ 请先勾选测试显示效果 ）
-          </label>
-        </div>
+      <div class="checkbox-group">
+        <input 
+          type="checkbox" 
+          class="checkbox-input"
+          @change=${this._entityChanged}
+          .checked=${this.config.no_preview === true}
+          name="no_preview"
+          id="no_preview"
+        />
+        <label for="no_preview" class="checkbox-label" style="color: red;"> 
+          📻显示预览📻（ 请先勾选测试显示效果 ）
+        </label>
+      </div>
 
 
-        <div class="form-group">
-          <label> </label>
-          <label>👇👇👇下方是弹出的主卡配置项👇👇👇</label>
-          <label> </label>
-        </div>
+      <div class="form-group">
+        <label> </label>
+        <label>👇👇👇下方是弹出的主卡配置项👇👇👇</label>
+        <label> </label>
+      </div>
 
-        <!-- button新元素 结束-->
+      <!-- button新元素 结束-->
 
         <div class="form-group">
           <label>卡片宽度：支持像素(px)和百分比(%)，默认100%</label>
@@ -658,6 +702,7 @@ class XiaoshiBalanceButtonEditor extends LitElement {
       }
     }
     /*button新按钮方法 结束*/
+
     this.config = {
       ...this.config,
       [name]: finalValue
@@ -978,7 +1023,6 @@ class XiaoshiBalanceButton extends LitElement {
         align-items: center;
         padding: 16px;
         background: var(--bg-color, #fff);
-        
         border-radius: 12px;
       }
 
@@ -1008,8 +1052,6 @@ class XiaoshiBalanceButton extends LitElement {
         display: flex;
         align-items: center;
         justify-content: center;
-        
-
       }
 
       /*标题统计数字*/
@@ -1613,11 +1655,14 @@ class XiaoshiBalanceButton extends LitElement {
     /*button新元素 前9行和最后1行开始*/
     const showPreview = this.config.no_preview === true;
     
-    // 获取参数
+    // 获取新参数
+    const transparentBg = this.config.transparent_bg === true;
+    const hideIcon = this.config.hide_icon === true;
+    const lockWhiteFg = this.config.lock_white_fg === true;
     const buttonIcon = this.config.button_icon || 'mdi:cellphone';
     
     // 设置背景颜色
-    const buttonBgColor = bgColor;
+    const buttonBgColor = transparentBg ? 'transparent' : bgColor;
     
     // 获取显示模式
     const displayMode = this.config.display_mode || 'min_value';
@@ -1707,13 +1752,22 @@ class XiaoshiBalanceButton extends LitElement {
     // 获取预警颜色
     const warningColor = this.config.warning_color || 'rgb(255, 0, 0)';
     
-    // 根据预警状态设置数字颜色
-    const numberColor = isWarning ? warningColor : fgColor;
+    // 根据预警状态设置数字颜色，应用锁定白色功能
+    let numberColor, iconColor;
+    if (isWarning) {
+      // 预警状态：数字始终使用红色，图标根据锁定白色设置
+      numberColor = warningColor;
+      iconColor = lockWhiteFg ? 'rgb(255, 255, 255)' : fgColor;
+    } else {
+      // 非预警状态：数字和图标都根据锁定白色设置
+      numberColor = lockWhiteFg ? 'rgb(255, 255, 255)' : fgColor;
+      iconColor = lockWhiteFg ? 'rgb(255, 255, 255)' : fgColor;
+    }
     
     // 渲染按钮
     const buttonHtml = html`
-      <div class="balance-status" style="--fg-color: ${fgColor}; --bg-color: ${buttonBgColor};" @click=${this._handleButtonClick}>
-        <ha-icon class="status-icon" icon="${buttonIcon}"></ha-icon>
+      <div class="balance-status" style="--fg-color: ${numberColor}; --bg-color: ${buttonBgColor};" @click=${this._handleButtonClick}>
+      ${!hideIcon ? html`<ha-icon class="status-icon" style="color: ${iconColor};" icon="${buttonIcon}"></ha-icon>` : ''}
         <span style="color: ${numberColor};">${displayText}</span>
       </div>
     `;
