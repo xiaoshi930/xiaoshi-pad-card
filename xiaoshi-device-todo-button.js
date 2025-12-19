@@ -1122,19 +1122,13 @@ class XiaoshiTodoButton extends LitElement {
     super.connectedCallback();
     this._loadTodoData();
     
-    
-    //button新元素 开始
-    setTimeout(() => {
-      this._loadTodoData();
-    }, 50);
-    //button新元素 结束
     // 设置主题属性
     this.setAttribute('theme', this._evaluateTheme());
     
     // 每300秒刷新一次数据，减少频繁刷新
     this._refreshInterval = setInterval(() => {
       this._loadTodoData();
-    }, 300000);
+    }, 3000);
   }
 
   _evaluateTheme() {
