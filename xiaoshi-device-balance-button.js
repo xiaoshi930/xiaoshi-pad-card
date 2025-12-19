@@ -1233,16 +1233,10 @@ class XiaoshiBalanceButton extends LitElement {
     // 设置主题属性
     this.setAttribute('theme', this._evaluateTheme());
 
-    //button新元素 开始
-    setTimeout(() => {
-      this._loadOilPriceData();
-    }, 50);
-    //button新元素 结束
-
     // 每300秒刷新一次数据，减少频繁刷新
     this._refreshInterval = setInterval(() => {
       this._loadOilPriceData();
-    }, 300000);
+    }, 3000);
   }
 
   _evaluateTheme() {
