@@ -1656,7 +1656,7 @@ class XiaoshiBalanceButton extends LitElement {
     const buttonIcon = this.config.button_icon || 'mdi:cellphone';
     
     // 设置背景颜色
-    const buttonBgColor = transparentBg ? 'transparent' : theme === 'on' ? 'rgb(255, 255, 255, 0.6)' : 'rgb(50, 50, 50, 0.6)';
+    const buttonBgColor = transparentBg ? 'transparent' : theme === 'on' ? 'rgb(255, 255, 255, 0.6)' : 'rgb(80, 80, 80, 0.6)';
     
     // 获取显示模式
     const displayMode = this.config.display_mode || 'min_value';
