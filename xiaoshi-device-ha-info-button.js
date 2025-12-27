@@ -1792,7 +1792,7 @@ export class XiaoshiHaInfoButton extends LitElement {
     const buttonIcon = this.config.button_icon || 'mdi:home-assistant';
     
     // 设置背景颜色
-    const buttonBgColor = transparentBg ? 'transparent' : bgColor;
+    const buttonBgColor = transparentBg ? 'transparent' : theme === 'on' ? 'rgb(255, 255, 255, 0.6)' : 'rgb(50, 50, 50, 0.6)';
     
     // 检查是否需要自动隐藏（只有数据加载完成且数量为0时才考虑隐藏）
     const shouldAutoHide = this._dataLoaded && autoHide && warningCount === 0;
