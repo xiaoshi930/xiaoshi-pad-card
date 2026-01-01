@@ -1,15 +1,15 @@
-console.info("%c 消逝卡-平板端 \n%c      v 0.2.4 ", "color: red; font-weight: bold; background: black", "color: white; font-weight: bold; background: black");
+console.info("%c 消逝卡-平板端 \n%c      v 0.2.5 ", "color: red; font-weight: bold; background: black", "color: white; font-weight: bold; background: black");
 
-const loadCards = async () => {
-    await import('./xiaoshi-pad-grid-card.js');
-    await import('./xiaoshi-device-balance-card.js');
-    await import('./xiaoshi-device-balance-button.js');
-    await import('./xiaoshi-device-todo-card.js');
-    await import('./xiaoshi-device-todo-button.js');
-    await import('./xiaoshi-device-consumables-card.js');
-    await import('./xiaoshi-device-consumables-button.js');
-    await import('./xiaoshi-device-ha-info-card.js'); 
-    await import('./xiaoshi-device-ha-info-button.js'); 
+const loadCards = () => {
+    import('./xiaoshi-pad-grid-card.js');
+    import('./xiaoshi-device-balance-card.js');
+    import('./xiaoshi-device-balance-button.js');
+    import('./xiaoshi-device-todo-card.js');
+    import('./xiaoshi-device-todo-button.js');
+    import('./xiaoshi-device-consumables-card.js');
+    import('./xiaoshi-device-consumables-button.js');
+    import('./xiaoshi-device-ha-info-card.js'); 
+    import('./xiaoshi-device-ha-info-button.js'); 
     
     window.customCards = window.customCards || [];
     window.customCards.push(...cardConfigs);
