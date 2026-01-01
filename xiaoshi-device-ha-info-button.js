@@ -405,7 +405,7 @@ template: 测试模板(最好引用模板，否则大概率会报错)'>
 } 
 customElements.define('xiaoshi-ha-info-button-editor', XiaoshiHaInfoButtonEditor);
 
-export class XiaoshiHaInfoButton extends LitElement {
+class XiaoshiHaInfoButton extends LitElement {
   static get properties() {
     return {
       hass: Object,
