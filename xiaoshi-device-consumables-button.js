@@ -1286,7 +1286,6 @@ class XiaoshiConsumablesButton extends LitElement {
     super();
     this._oilPriceData = [];
     this._loading = false;
-    this._dataLoaded = false;  //button新元素
     this._refreshInterval = null;
     this.theme = 'on';
   }
@@ -1305,7 +1304,7 @@ class XiaoshiConsumablesButton extends LitElement {
     // 每300秒刷新一次数据，减少频繁刷新
     this._refreshInterval = setInterval(() => {
       this._loadOilPriceData();
-    }, 3000);
+    }, 300000);
   }
 
   _evaluateTheme() {
@@ -1432,11 +1431,9 @@ class XiaoshiConsumablesButton extends LitElement {
       }
 
       this._oilPriceData = consumablesData;
-      this._dataLoaded = true;  //button新元素
     } catch (error) {
       console.error('加载设备耗材数据失败:', error);
       this._oilPriceData = [];
-      this._dataLoaded = true; //button新元素
     }
 
     this._loading = false;
@@ -1866,7 +1863,7 @@ class XiaoshiConsumablesButton extends LitElement {
     const buttonBgColor = transparentBg ? 'transparent' : theme === 'on' ? 'rgb(255, 255, 255, 0.6)' : 'rgb(83, 83, 83, 0.6)';
     
     // 检查是否需要自动隐藏（只有数据加载完成且数量为0时才考虑隐藏）
-    const shouldAutoHide = this._dataLoaded && autoHide && warningCount === 0;
+    const shouldAutoHide = autoHide && warningCount === 0;
     
     // 如果需要自动隐藏，返回空div
     if (shouldAutoHide) {
@@ -1875,95 +1872,53 @@ class XiaoshiConsumablesButton extends LitElement {
     
     // 渲染按钮
     let buttonHtml;
-    if (!this._dataLoaded) {
-      if (badgeMode) {
-        // 角标模式：只显示图标，数量为0时不显示角标
-        buttonHtml = html`
-          <div class="consumables-status badge-mode" style="--bg-color: ${buttonBgColor};" @click=${this._handleButtonClick}>
-            <ha-icon class="status-icon" icon="${buttonIcon}"></ha-icon>
-          </div>
-        `;
-      } else {
-        // 普通模式
-        // 应用锁定白色功能
-        const iconColor = lockWhiteFg ? 'rgb(255, 255, 255)' : fgColor;
-        const textColor = lockWhiteFg ? 'rgb(255, 255, 255)' : fgColor;
-        
-        // 构建显示文本
-        let displayText = buttonText;
-        
-        // 根据hide_colon参数决定是否显示冒号
-        if (!hideColon) {
-          displayText += ':';
-        } else {
-          displayText += ' ';
-        }
-        
-        // 根据hide_zero参数决定是否显示0值
-        if (!hideZero) {
-          displayText += ' 0';
-        } else {
-          // 隐藏0值时使用CSS空格占位符，保持布局稳定
-          displayText += '\u2002'; // 两个en空格，大约等于数字"0"的宽度
-        }
-        
-        buttonHtml = html`
-          <div class="consumables-status" style="--fg-color: ${textColor}; --bg-color: ${buttonBgColor};" @click=${this._handleButtonClick}>
-            ${!hideIcon ? html`<ha-icon class="status-icon" style="color: ${iconColor};" icon="${buttonIcon}"></ha-icon>` : ''}
-            ${displayText}
-          </div>
-        `;
-      }
+    if (badgeMode) {
+      // 角标模式：只显示图标，根据数量显示角标
+      const hasWarning = warningCount > 0;
+      buttonHtml = html`
+        <div class="consumables-status badge-mode ${hasWarning ? 'has-warning' : ''}" style="--bg-color: ${buttonBgColor};" @click=${this._handleButtonClick}>
+          <ha-icon class="status-icon" icon="${buttonIcon}"></ha-icon>
+          ${hasWarning ? html`<div class="badge-number">${warningCount}</div>` : ''}
+        </div>
+      `;
     } else {
-      // 数据加载完成后
-      if (badgeMode) {
-        // 角标模式：只显示图标，根据数量显示角标
-        const hasWarning = warningCount > 0;
-        buttonHtml = html`
-          <div class="consumables-status badge-mode ${hasWarning ? 'has-warning' : ''}" style="--bg-color: ${buttonBgColor};" @click=${this._handleButtonClick}>
-            <ha-icon class="status-icon" icon="${buttonIcon}"></ha-icon>
-            ${hasWarning ? html`<div class="badge-number">${warningCount}</div>` : ''}
-          </div>
-        `;
+      // 普通模式：显示文本和数量
+      // 应用锁定白色功能，但预警颜色（红色）不受影响
+      let textColor, iconColor;
+      if (warningCount === 0) {
+        // 非预警状态：根据锁定白色设置决定颜色
+        textColor = lockWhiteFg ? 'rgb(255, 255, 255)' : fgColor;
+        iconColor = lockWhiteFg ? 'rgb(255, 255, 255)' : fgColor;
       } else {
-        // 普通模式：显示文本和数量
-        // 应用锁定白色功能，但预警颜色（红色）不受影响
-        let textColor, iconColor;
-        if (warningCount === 0) {
-          // 非预警状态：根据锁定白色设置决定颜色
-          textColor = lockWhiteFg ? 'rgb(255, 255, 255)' : fgColor;
-          iconColor = lockWhiteFg ? 'rgb(255, 255, 255)' : fgColor;
-        } else {
-          // 预警状态：始终使用红色，不受锁定白色影响
-          textColor = 'rgb(255, 0, 0)';
-          iconColor = lockWhiteFg ? 'rgb(255, 255, 255)' : fgColor;
-        }
-        
-        // 构建显示文本
-        let displayText = buttonText;
-        
-        // 根据hide_colon参数决定是否显示冒号
-        if (!hideColon) {
-          displayText += ':';
-        } else {
-          displayText += ' ';
-        }
-        
-        // 根据hide_zero参数和实际数量决定是否显示数量
-        if (hideZero && warningCount === 0) {
-          // 隐藏0值时使用CSS空格占位符，保持布局稳定
-          displayText += '\u2002'; // 两个en空格，大约等于数字"0"的宽度
-        } else {
-          displayText += ` ${warningCount}`;
-        }
-        
-        buttonHtml = html`
-          <div class="consumables-status" style="--fg-color: ${textColor}; --bg-color: ${buttonBgColor};" @click=${this._handleButtonClick}>
-            ${!hideIcon ? html`<ha-icon class="status-icon" style="color: ${iconColor};" icon="${buttonIcon}"></ha-icon>` : ''}
-            ${displayText}
-          </div>
-        `;
+        // 预警状态：始终使用红色，不受锁定白色影响
+        textColor = 'rgb(255, 0, 0)';
+        iconColor = lockWhiteFg ? 'rgb(255, 255, 255)' : fgColor;
       }
+      
+      // 构建显示文本
+      let displayText = buttonText;
+      
+      // 根据hide_colon参数决定是否显示冒号
+      if (!hideColon) {
+        displayText += ':';
+      } else {
+        displayText += ' ';
+      }
+      
+      // 根据hide_zero参数和实际数量决定是否显示数量
+      if (hideZero && warningCount === 0) {
+        // 隐藏0值时使用CSS空格占位符，保持布局稳定
+        displayText += '\u2002'; // 两个en空格，大约等于数字"0"的宽度
+      } else {
+        displayText += ` ${warningCount}`;
+      }
+      
+      buttonHtml = html`
+        <div class="consumables-status" style="--fg-color: ${textColor}; --bg-color: ${buttonBgColor};" @click=${this._handleButtonClick}>
+          ${!hideIcon ? html`<ha-icon class="status-icon" style="color: ${iconColor};" icon="${buttonIcon}"></ha-icon>` : ''}
+          ${displayText}
+        </div>
+      `;
     }
 
     // 返回最终的渲染结果（包括按钮和预览卡片）
