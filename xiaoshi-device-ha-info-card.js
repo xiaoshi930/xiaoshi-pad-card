@@ -153,7 +153,7 @@ class XiaoshiHaInfoCardEditor extends LitElement {
 } 
 customElements.define('xiaoshi-ha-info-card-editor', XiaoshiHaInfoCardEditor);
 
-export class XiaoshiHaInfoCard extends LitElement {
+class XiaoshiHaInfoCard extends LitElement {
   static get properties() {
     return {
       hass: Object,
