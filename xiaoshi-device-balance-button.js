@@ -1217,7 +1217,6 @@ class XiaoshiBalanceButton extends LitElement {
     super();
     this._oilPriceData = [];
     this._loading = false;
-    this._dataLoaded = false;  //button新元素
     this._refreshInterval = null;
     this.theme = 'on';
   }
@@ -1236,7 +1235,7 @@ class XiaoshiBalanceButton extends LitElement {
     // 每300秒刷新一次数据，减少频繁刷新
     this._refreshInterval = setInterval(() => {
       this._loadOilPriceData();
-    }, 3000);
+    }, 300000);
   }
 
   _evaluateTheme() {
@@ -1330,11 +1329,9 @@ class XiaoshiBalanceButton extends LitElement {
       }
 
       this._oilPriceData = balanceData;
-      this._dataLoaded = true;  //button新元素
     } catch (error) {
       console.error('加载设备余额数据失败:', error);
       this._oilPriceData = [];
-      this._dataLoaded = true;  //button新元素
     }
 
     this._loading = false;
@@ -1668,15 +1665,7 @@ class XiaoshiBalanceButton extends LitElement {
     let displayUnit = '元';
     let isWarning = false; // 是否处于预警状态
     
-    if (!this._dataLoaded) {
-      // 数据加载中
-      displayValue = '加载中';
-      displayUnit = '';
-    } else if (this._oilPriceData.length === 0) {
-      // 无数据
-      displayValue = '无数据';
-      displayUnit = '';
-    } else if (displayMode === 'min_value') {
+    if (displayMode === 'min_value') {
       // 显示最小值模式
       const numericValues = this._oilPriceData
         .map(item => {
