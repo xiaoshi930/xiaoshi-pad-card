@@ -1,6 +1,6 @@
 import { LitElement, html, css } from "https://unpkg.com/lit-element@2.4.0/lit-element.js?module";
 
-export class XiaoshiPadGridCard extends LitElement {
+class XiaoshiPadGridCard extends LitElement {
   static get properties() {
     return {
       hass: Object,
