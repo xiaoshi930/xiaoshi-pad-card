@@ -1,15 +1,15 @@
 console.info("%c 消逝卡-平板端 \n%c      v 0.2.6 ", "color: red; font-weight: bold; background: black", "color: white; font-weight: bold; background: black");
 
 const loadCards = () => {
-    import('./xiaoshi-pad-grid-card.js');
-    import('./xiaoshi-device-balance-card.js');
     import('./xiaoshi-device-balance-button.js');
-    import('./xiaoshi-device-todo-card.js');
-    import('./xiaoshi-device-todo-button.js');
-    import('./xiaoshi-device-consumables-card.js');
-    import('./xiaoshi-device-consumables-button.js');
-    import('./xiaoshi-device-ha-info-card.js'); 
     import('./xiaoshi-device-ha-info-button.js'); 
+    import('./xiaoshi-device-todo-button.js');
+    import('./xiaoshi-device-consumables-button.js');
+    import('./xiaoshi-device-balance-card.js');
+    import('./xiaoshi-device-ha-info-card.js'); 
+    import('./xiaoshi-device-todo-card.js');
+    import('./xiaoshi-device-consumables-card.js');
+    import('./xiaoshi-pad-grid-card.js');
     
     window.customCards = window.customCards || [];
     window.customCards.push(...cardConfigs);
