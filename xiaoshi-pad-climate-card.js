@@ -1980,6 +1980,7 @@ _renderExtraButtons(buttonType = 1) {
             if (name.includes('防冻')) return isActive ? 'mdi:snowflake' : 'mdi:snowflake-off';
             if (name.includes('防烫伤')) return isActive ? 'mdi:fire' : 'mdi:fire-off';
             if (name.includes('按键锁')) return isActive ? 'mdi:lock-open' : 'mdi:lock-open-variant';
+            if (name.includes('息屏')) return 'mdi:lightbulb-off';
             return null;
         };
 
