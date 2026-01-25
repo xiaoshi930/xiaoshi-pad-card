@@ -1980,10 +1980,8 @@ _renderExtraButtons(buttonType = 1) {
             if (name.includes('防冻')) return isActive ? 'mdi:snowflake' : 'mdi:snowflake-off';
             if (name.includes('防烫伤')) return isActive ? 'mdi:fire' : 'mdi:fire-off';
             if (name.includes('按键锁')) return isActive ? 'mdi:lock-open' : 'mdi:lock-open-variant';
-            if (name.includes('息屏')) return 'mdi:lightbulb-off';
             return null;
         };
-
 
         switch(domain) {
             case 'switch':
@@ -2011,7 +2009,7 @@ _renderExtraButtons(buttonType = 1) {
 
                 return html`
                     <div class="side-extra-button" style="cursor: default; --bg-color: ${bgColor};">
-                        <div class="side-value" style="color: ${displayValueColor}; font-size: 12px;">${displayValue}</div>
+                        <div class="side-value" style="color: ${displayValueColor}; font-size: 11px; font-weight: bold; white-space: nowrap">${displayValue}</div>
                         <span class="side-text" style="color: ${fgColor};">${displayName}</span>
                     </div>
                 `;
@@ -2029,15 +2027,14 @@ _renderExtraButtons(buttonType = 1) {
                 `;
 
             case 'select':
-                const options = entity.attributes.options || [];
-                const firstOption = options[0] || '';
-                const selectDisplayValue = firstOption.slice(0, 4);
+                const state = entity.state || '';
+                const selectDisplayValue = state.slice(0, 4);
 
                 return html`
                     <div class="side-extra-button"
                             @click=${() => this._handleExtraButtonClick(buttonEntityId, domain)}
                             style="cursor: default; --bg-color: ${bgColor};">
-                        <div class="side-value" style="color: ${fgColor}; font-size: 12px;">${selectDisplayValue}</div>
+                        <div class="side-value" style="color: ${fgColor}; font-size: 11px; font-weight: bold; white-space: nowrap">${selectDisplayValue}</div>
                         <span class="side-text" style="color: ${fgColor};">${displayName}</span>
                     </div>
                 `;
