@@ -1967,7 +1967,7 @@ _renderExtraButtons(buttonType = 1) {
         const domain = buttonEntityId.split('.')[0];
         const friendlyName = entity.attributes.friendly_name || '';
         const displayName = friendlyName.slice(0, 4);
-        const displayValueColor = entity.state === '低' ? 'red' : fgColor;
+        const displayValueColor = entity.state.includes('低') || entity.state.includes('少') || entity.state.includes('缺') ? 'red' : fgColor;
 
         // 根据名称自定义图标
         const _getCustomIcon = (name, isActive) => {
@@ -1977,8 +1977,12 @@ _renderExtraButtons(buttonType = 1) {
             if (name.includes('睡眠')) return isActive ? 'mdi:sleep' : 'mdi:sleep-off';
             if (name.includes('指示灯')) return isActive ? 'mdi:lightbulb-on' : 'mdi:lightbulb-off';
             if (name.includes('提示音')) return isActive ? 'mdi:volume-high' : 'mdi:volume-mute';
+            if (name.includes('防冻')) return isActive ? 'mdi:snowflake' : 'mdi:snowflake-off';
+            if (name.includes('防烫伤')) return isActive ? 'mdi:fire' : 'mdi:fire-off';
+            if (name.includes('按键锁')) return isActive ? 'mdi:lock-open' : 'mdi:lock-open-variant';
             return null;
         };
+
 
         switch(domain) {
             case 'switch':
