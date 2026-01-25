@@ -681,6 +681,49 @@ class XiaoshiPadClimateCardEditor extends LitElement {
             <option value="off">深色主题（深灰底白字）</option>
           </select>
         </div>
+        
+        <!-- 温度传感器 -->
+        <div class="form-group">
+          <label>温度传感器 (可选)</label>
+          <div class="entity-selector-with-remove">
+            <div class="entity-selector">
+              <input
+                type="text"
+                @input=${this._onTemperatureSearch}
+                @focus=${this._onTemperatureSearch}
+                .value=${this._temperatureSearchTerm || this.config.temperature || ''}
+                placeholder="搜索传感器..."
+                class="entity-search-input"
+              />
+              ${this._showTemperatureList ? html`
+                <div class="entity-dropdown">
+                  ${this._filteredTemperatureEntities.map(entity => html`
+                    <div
+                      class="entity-option ${this.config.temperature === entity.entity_id ? 'selected' : ''}"
+                      @click=${() => this._selectTemperature(entity.entity_id)}
+                    >
+                      <div class="entity-info">
+                        <ha-icon icon="${entity.attributes.icon || 'mdi:help-circle'}"></ha-icon>
+                        <div class="entity-details">
+                          <div class="entity-name">${entity.attributes.friendly_name || entity.entity_id}</div>
+                          <div class="entity-id">${entity.entity_id}</div>
+                        </div>
+                      </div>
+                      ${this.config.temperature === entity.entity_id ?
+                        html`<ha-icon icon="mdi:check" class="check-icon"></ha-icon>` : ''}
+                    </div>
+                  `)}
+                  ${this._filteredTemperatureEntities.length === 0 ? html`
+                    <div class="no-results">未找到匹配的实体</div>
+                  ` : ''}
+                </div>
+              ` : ''}
+            </div>
+            <button class="remove-button" @click=${this._removeTemperature} title="移除温度传感器">
+              <ha-icon icon="mdi:close"></ha-icon>
+            </button>
+          </div>
+        </div>
 
         <!-- 定时器位置 -->
         ${this.config.timer ? html`
@@ -1964,7 +2007,7 @@ _renderExtraButtons(buttonType = 1) {
                 return html`
                     <div class="side-extra-button" style="cursor: default; --bg-color: ${bgColor};">
                         <div class="side-value" style="color: ${displayValueColor}; font-size: 12px;">${displayValue}</div>
-                        <span class="side-text" style="color: ${buttonColor}">${displayName}</span>
+                        <span class="side-text" style="color: ${fgColor};">${displayName}</span>
                     </div>
                 `;
 
@@ -1974,9 +2017,9 @@ _renderExtraButtons(buttonType = 1) {
                 return html`
                     <button class="side-extra-button"
                             @click=${() => this._handleExtraButtonClick(buttonEntityId, domain)}
-                            style="color: ${buttonColor}; --bg-color: ${bgColor};">
-                        <ha-icon class="side-icon" icon="${buttonIcon}" style="color: ${buttonColor}"></ha-icon>
-                        <span class="side-text" style="color: ${buttonColor}">${displayName}</span>
+                            style="color: ${fgColor}; --bg-color: ${bgColor};">
+                        <ha-icon class="side-icon" icon="${buttonIcon}" style="color: ${fgColor}"></ha-icon>
+                        <span class="side-text" style="color: ${fgColor};">${displayName}</span>
                     </button>
                 `;
 
@@ -1989,8 +2032,8 @@ _renderExtraButtons(buttonType = 1) {
                     <div class="side-extra-button"
                             @click=${() => this._handleExtraButtonClick(buttonEntityId, domain)}
                             style="cursor: default; --bg-color: ${bgColor};">
-                        <div class="side-value" style="color: ${buttonColor}; font-size: 12px;">${selectDisplayValue}</div>
-                        <span class="side-text" style="color: ${buttonColor}">${displayName}</span>
+                        <div class="side-value" style="color: ${fgColor}; font-size: 12px;">${selectDisplayValue}</div>
+                        <span class="side-text" style="color: ${fgColor};">${displayName}</span>
                     </div>
                 `;
 
