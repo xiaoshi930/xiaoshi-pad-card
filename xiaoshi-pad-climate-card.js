@@ -933,31 +933,14 @@ class XiaoshiPadClimateCardEditor extends LitElement {
 
         <!-- 宽度设置 -->
         <div class="form-group">
-          <label>卡片宽度：支持像素(px)和百分比(%)，默认300px</label>
+          <label>卡片主体宽度</label>
           <input
             type="text"
             @change=${this._widthChanged}
             .value=${this.config.width !== undefined ? this.config.width : '300px'}
             name="width"
-            placeholder="默认300px"
           />
         </div>
-
-        <!-- 高度设置 -->
-        <div class="form-group">
-          <label>卡片高度：支持像素(px)，默认300px</label>
-          <input
-            type="text"
-            @change=${this._heightChanged}
-            .value=${this.config.height !== undefined ? this.config.height : '300px'}
-            name="height"
-            placeholder="默认300px"
-          />
-          <div class="help-text">
-            输入高度值，例如：300px
-          </div>
-        </div>
-
 
       </div>
     `;
@@ -1315,7 +1298,6 @@ class XiaoshiPadClimateCard extends LitElement {
     return {
       hass: { type: Object },
       width: { type: String, attribute: true },
-      height: { type: String, attribute: true },
       config: { type: Object },
       buttons: { type: Array },
       theme: { type: String },
@@ -1344,7 +1326,6 @@ class XiaoshiPadClimateCard extends LitElement {
     this.buttons2 = config.buttons2 || [];
     this._externalTempSensor = config.temperature || null;
     if (config.width !== undefined) this.width = config.width;
-    if (config.height !== undefined) this.height = config.height;
     this.requestUpdate();
   }
 
@@ -1361,7 +1342,7 @@ class XiaoshiPadClimateCard extends LitElement {
         position: relative;
         background-color: var(--bg-color);
         border-radius: 15px;
-        width: 300px;
+        width: var(--card-width, 300px);
       }
 
       .side-button-wrapper {
@@ -1378,7 +1359,7 @@ class XiaoshiPadClimateCard extends LitElement {
 
       .thermostat-card {
         position: relative;
-        width: 300px;
+        width: var(--card-width, 300px);
         height: 265px;
         display: flex;
         flex-direction: column;
@@ -1386,7 +1367,7 @@ class XiaoshiPadClimateCard extends LitElement {
 
       .thermostat-container {
         flex: 1;
-        width: 300px;
+        width: var(--card-width, 300px);
         height: 265px;
         position: relative;
       }
@@ -1523,7 +1504,6 @@ class XiaoshiPadClimateCard extends LitElement {
     this.buttons2 = [];
     this.theme = 'on';
     this.width = '300px';
-    this.height = '300px';
     this._timerInterval = null;
     this.temperatureData = [];
     this.canvas = null;
@@ -1743,7 +1723,7 @@ class XiaoshiPadClimateCard extends LitElement {
           </div>
         ` : ''}
 
-        <div class="main-card" style="--bg-color: ${bgColor}; --fg-color: ${fgColor};">
+        <div class="main-card" style="--bg-color: ${bgColor}; --fg-color: ${fgColor}; --card-width: ${this.config.width || '300px'};">
           <div class="thermostat-card ${themeClass}" style="height: ${cardHeight}px; --card-height: ${cardHeight}px;">
             <div class="thermostat-container" id="thermostatContainer"></div>
 
