@@ -1410,6 +1410,7 @@ class XiaoshiPadClimateCard extends LitElement {
         background: rgb(0,0,0,0);
         cursor: pointer;
         padding: 0;
+        margin: 0;
         display: flex;
         align-items: center;
         justify-content: center;
