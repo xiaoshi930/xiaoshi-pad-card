@@ -1,4 +1,4 @@
-console.info("%c 消逝卡-平板端 \n%c      v 1.0.2 ", "color: red; font-weight: bold; background: black", "color: white; font-weight: bold; background: black");
+console.info("%c 消逝卡-平板端 \n%c      v 1.0.3 ", "color: red; font-weight: bold; background: black", "color: white; font-weight: bold; background: black");
 
 const loadCards = () => {
     import('./xiaoshi-pad-climate-card.js');
