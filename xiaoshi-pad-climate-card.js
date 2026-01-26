@@ -20,7 +20,10 @@ class XiaoshiPadClimateCardEditor extends LitElement {
       _button2SearchTerms: { type: Object },
       _filteredButton2Entities: { type: Object },
       _showButton2Lists: { type: Object },
-      _availableModes: { type: Object }
+      _availableModes: { type: Object },
+      _modeFilterExpanded: { type: Object },
+      _modeFilters: { type: Object },
+      _buttonConfigExpanded: { type: Object }
     };
   }
 
@@ -151,6 +154,47 @@ class XiaoshiPadClimateCardEditor extends LitElement {
     }
     if (this.config.show_water_modes === undefined) {
       this.config.show_water_modes = this._availableModes.hasWaterModes;
+    }
+
+    // 初始化模式过滤器和展开状态（如果没有配置）
+    if (!this._modeFilters) {
+      this._modeFilters = {};
+    }
+    if (!this._modeFilterExpanded) {
+      this._modeFilterExpanded = {};
+    }
+
+    // 从配置中恢复过滤器状态，或者初始化默认值
+    if (attrs.hvac_modes && attrs.hvac_modes.length > 0) {
+      this._modeFilters.hvac_modes = {};
+      attrs.hvac_modes.forEach(mode => {
+        // 配置中只有 false 的项，未配置的默认为 true
+        this._modeFilters.hvac_modes[mode] = this.config.mode_filters?.hvac_modes?.[mode] === false ? false : true;
+      });
+    }
+    if (attrs.fan_modes && attrs.fan_modes.length > 0) {
+      this._modeFilters.fan_modes = {};
+      attrs.fan_modes.forEach(mode => {
+        this._modeFilters.fan_modes[mode] = this.config.mode_filters?.fan_modes?.[mode] === false ? false : true;
+      });
+    }
+    if (attrs.swing_modes && attrs.swing_modes.length > 0) {
+      this._modeFilters.swing_modes = {};
+      attrs.swing_modes.forEach(mode => {
+        this._modeFilters.swing_modes[mode] = this.config.mode_filters?.swing_modes?.[mode] === false ? false : true;
+      });
+    }
+    if (attrs.preset_modes && attrs.preset_modes.length > 0) {
+      this._modeFilters.preset_modes = {};
+      attrs.preset_modes.forEach(mode => {
+        this._modeFilters.preset_modes[mode] = this.config.mode_filters?.preset_modes?.[mode] === false ? false : true;
+      });
+    }
+    if (attrs.operation_list && attrs.operation_list.length > 0) {
+      this._modeFilters.operation_list = {};
+      attrs.operation_list.forEach(mode => {
+        this._modeFilters.operation_list[mode] = this.config.mode_filters?.operation_list?.[mode] === false ? false : true;
+      });
     }
   }
 
@@ -537,6 +581,214 @@ class XiaoshiPadClimateCardEditor extends LitElement {
         background-color: #ffebee;
         color: #c62828;
       }
+
+      .mode-filter-section {
+        border: 1px solid #e0e0e0;
+        border-radius: 6px;
+        padding: 8px;
+        margin-top: 8px;
+        background: rgb(0,0,0);
+      }
+
+      .mode-filter-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        cursor: pointer;
+        padding: 4px 0;
+      }
+
+      .mode-filter-header:hover {
+        background: rgb(0,0,0);
+        border-radius: 4px;
+      }
+
+      .mode-filter-title {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 12px;
+        font-weight: 500;
+        color: rgb(250, 250, 250);
+      }
+
+      .mode-filter-icon {
+        transition: transform 0.2s ease;
+        color: rgb(250, 250, 250);
+      }
+
+      .mode-filter-icon.expanded {
+        transform: rotate(90deg);
+      }
+
+      .mode-filter-items {
+        margin-top: 8px;
+        padding-left: 12px;
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+        gap: 6px;
+      }
+
+      .mode-filter-item {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 4px 6px;
+        border-radius: 4px;
+        background: transparent;
+        font-size: 11px;
+        color: rgb(250, 250, 250);
+      }
+
+      .mode-filter-item:hover {
+        background: rgba(0, 0, 0, 0.05);
+      }
+
+      .mode-filter-item input[type="checkbox"] {
+        cursor: pointer;
+      }
+
+      .mode-filter-item label {
+        cursor: pointer;
+        font-weight: normal;
+        margin: 0;
+        color: rgb(250, 250, 250);
+      }
+
+      .mode-filter-item-expanded {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        padding: 4px 6px;
+        border-radius: 4px;
+        background: transparent;
+        font-size: 11px;
+        color: rgb(250, 250, 250);
+      }
+
+      .mode-filter-item-expanded:hover {
+        background: rgba(0, 0, 0, 0.05);
+      }
+
+      .mode-filter-header-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+
+      .mode-filter-left {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+
+      .mode-filter-config {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        padding-left: 24px;
+        margin-top: 4px;
+      }
+
+      .mode-config-row {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 10px;
+      }
+
+      .mode-config-row input[type="checkbox"] {
+        cursor: pointer;
+      }
+
+      .mode-config-row label {
+        cursor: pointer;
+        font-weight: normal;
+        margin: 0;
+        font-size: 10px;
+        color: rgb(250, 250, 250);
+      }
+
+      .mode-config-input {
+        width: 100%;
+        padding: 4px 6px;
+        border: 1px solid #555;
+        border-radius: 3px;
+        background: rgba(0, 0, 0, 0.2);
+        color: rgb(250, 250, 250);
+        font-size: 10px;
+        box-sizing: border-box;
+      }
+
+      .mode-config-input::placeholder {
+        color: rgba(250, 250, 250, 0.5);
+      }
+
+      .mode-config-input:focus {
+        outline: none;
+        border-color: #4CAF50;
+      }
+
+      .button-custom-config {
+        background: transparent;
+        border-radius: 6px;
+        padding: 0px;
+        margin-bottom: 10px;
+      }
+
+      .config-toggle-icon {
+        transition: transform 0.2s ease;
+        color: rgb(250, 250, 250);
+        font-size: 16px;
+      }
+
+      .config-toggle-icon.expanded {
+        transform: rotate(90deg);
+      }
+
+      .button-config-items {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        padding-left: 24px;
+        margin-top: 4px;
+      }
+
+      .button-config-row {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 11px;
+      }
+
+      .button-config-row label {
+        font-weight: normal;
+        margin: 0;
+        color: rgb(250, 250, 250);
+        font-size: 10px;
+        white-space: nowrap;
+        min-width: 80px;
+      }
+
+      .button-config-input {
+        flex: 1;
+        padding: 4px 6px;
+        border: 1px solid #555;
+        border-radius: 3px;
+        background: rgba(0, 0, 0, 0.2);
+        color: rgb(250, 250, 250);
+        font-size: 10px;
+        box-sizing: border-box;
+      }
+
+      .button-config-input::placeholder {
+        color: rgba(250, 250, 250, 0.5);
+      }
+
+      .button-config-input:focus {
+        outline: none;
+        border-color: #4CAF50;
+      }
     `;
   }
 
@@ -621,51 +873,68 @@ class XiaoshiPadClimateCardEditor extends LitElement {
             ` : ''}
             <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 8px;">
               ${this._availableModes?.hasHvacModes ? html`
-                <div style="display: flex; align-items: center; gap: 8px;">
-                  <ha-switch
-                    .checked=${this.config.show_hvac_modes !== false}
-                    @change=${this._showHvacModesChanged}
-                  ></ha-switch>
-                  <span>显示模式按钮</span>
+                <div style="display: flex; flex-direction: column; gap: 4px;">
+                  <div style="display: flex; align-items: center; gap: 8px;">
+                    <ha-switch
+                      .checked=${this.config.show_hvac_modes !== false}
+                      @change=${this._showHvacModesChanged}
+                    ></ha-switch>
+                    <span>显示模式按钮</span>
+                  </div>
+                  ${this._renderModeFilter('hvac_modes', '模式筛选')}
                 </div>
               ` : ''}
               ${this._availableModes?.hasFanModes ? html`
-                <div style="display: flex; align-items: center; gap: 8px;">
-                  <ha-switch
-                    .checked=${this.config.show_fan_modes !== false}
-                    @change=${this._showFanModesChanged}
-                  ></ha-switch>
-                  <span>显示风速按钮</span>
+                <div style="display: flex; flex-direction: column; gap: 4px;">
+                  <div style="display: flex; align-items: center; gap: 8px;">
+                    <ha-switch
+                      .checked=${this.config.show_fan_modes !== false}
+                      @change=${this._showFanModesChanged}
+                    ></ha-switch>
+                    <span>显示风速按钮</span>
+                  </div>
+                  ${this._renderModeFilter('fan_modes', '风速筛选')}
                 </div>
               ` : ''}
               ${this._availableModes?.hasSwingModes ? html`
-                <div style="display: flex; align-items: center; gap: 8px;">
-                  <ha-switch
-                    .checked=${this.config.show_swing_modes !== false}
-                    @change=${this._showSwingModesChanged}
-                  ></ha-switch>
-                  <span>显示风向按钮</span>
+                <div style="display: flex; flex-direction: column; gap: 4px;">
+                  <div style="display: flex; align-items: center; gap: 8px;">
+                    <ha-switch
+                      .checked=${this.config.show_swing_modes !== false}
+                      @change=${this._showSwingModesChanged}
+                    ></ha-switch>
+                    <span>显示风向按钮</span>
+                  </div>
+                  ${this._renderModeFilter('swing_modes', '风向筛选')}
                 </div>
               ` : ''}
               ${this._availableModes?.hasPresetModes ? html`
-                <div style="display: flex; align-items: center; gap: 8px;">
-                  <ha-switch
-                    .checked=${this.config.show_preset_modes !== false}
-                    @change=${this._showPresetModesChanged}
-                  ></ha-switch>
-                  <span>显示水暖毯模式按钮</span>
+                <div style="display: flex; flex-direction: column; gap: 4px;">
+                  <div style="display: flex; align-items: center; gap: 8px;">
+                    <ha-switch
+                      .checked=${this.config.show_preset_modes !== false}
+                      @change=${this._showPresetModesChanged}
+                    ></ha-switch>
+                    <span>显示水暖毯模式按钮</span>
+                  </div>
+                  ${this._renderModeFilter('preset_modes', '水暖毯模式筛选')}
                 </div>
               ` : ''}
               ${this._availableModes?.hasWaterModes ? html`
-                <div style="display: flex; align-items: center; gap: 8px;">
-                  <ha-switch
-                    .checked=${this.config.show_water_modes !== false}
-                    @change=${this._showWaterModesChanged}
-                  ></ha-switch>
-                  <span>显示热水器模式按钮</span>
+                <div style="display: flex; flex-direction: column; gap: 4px;">
+                  <div style="display: flex; align-items: center; gap: 8px;">
+                    <ha-switch
+                      .checked=${this.config.show_water_modes !== false}
+                      @change=${this._showWaterModesChanged}
+                    ></ha-switch>
+                    <span>显示热水器模式按钮</span>
+                  </div>
+                  ${this._renderModeFilter('operation_list', '热水器模式筛选')}
                 </div>
               ` : ''}
             </div>
+
+            <!-- 模式过滤器已移至各个开关下方 -->
           </div>
         ` : ''}
 
@@ -812,6 +1081,19 @@ class XiaoshiPadClimateCardEditor extends LitElement {
                 <ha-icon icon="mdi:close"></ha-icon>
               </button>
             </div>
+            ${button ? html`
+              <div class="button-custom-config">
+                <div style="display: flex; align-items: center; gap: 6px; cursor: pointer; margin-bottom: 4px;" @click=${() => this._toggleButtonConfig('buttons', index)}>
+                  <ha-icon class="config-toggle-icon ${this._buttonConfigExpanded?.buttons?.[index] ? 'expanded' : ''}" icon="mdi:chevron-right"></ha-icon>
+                  <span style="font-size: 12px; color: rgb(250, 250, 250);">自定义配置</span>
+                </div>
+                ${this._buttonConfigExpanded?.buttons?.[index] ? html`
+                  <div class="button-config-items">
+                    ${this._renderButtonConfig('buttons', index)}
+                  </div>
+                ` : ''}
+              </div>
+            ` : ''}
           `)}
           ${(!this.config.buttons || this.config.buttons.length < 7) ? html`
             <div class="buttons-row">
@@ -871,6 +1153,19 @@ class XiaoshiPadClimateCardEditor extends LitElement {
                 <ha-icon icon="mdi:close"></ha-icon>
               </button>
             </div>
+            ${button2 ? html`
+              <div class="button-custom-config">
+                <div style="display: flex; align-items: center; gap: 6px; cursor: pointer; margin-top: 4px;" @click=${() => this._toggleButtonConfig('buttons2', index2)}>
+                  <ha-icon class="config-toggle-icon ${this._buttonConfigExpanded?.buttons2?.[index2] ? 'expanded' : ''}" icon="mdi:chevron-right"></ha-icon>
+                  <span style="font-size: 12px; color: rgb(250, 250, 250);">自定义配置</span>
+                </div>
+                ${this._buttonConfigExpanded?.buttons2?.[index2] ? html`
+                  <div class="button-config-items">
+                    ${this._renderButtonConfig('buttons2', index2)}
+                  </div>
+                ` : ''}
+              </div>
+            ` : ''}
           `)}
           ${(!this.config.buttons2 || this.config.buttons2.length < 7) ? html`
             <div class="buttons-row">
@@ -1019,6 +1314,34 @@ class XiaoshiPadClimateCardEditor extends LitElement {
       delete this._showButtonLists[index];
     }
 
+    // 清理该按钮的配置，并重新索引后面的配置
+    if (this.config.button_configs && this.config.button_configs.buttons) {
+      const newButtonConfigs = {};
+      Object.keys(this.config.button_configs.buttons).forEach(key => {
+        const keyIndex = parseInt(key);
+        if (keyIndex < index) {
+          // 保留索引小于被删除按钮的配置
+          newButtonConfigs[keyIndex] = this.config.button_configs.buttons[key];
+        } else if (keyIndex > index) {
+          // 将索引大于被删除按钮的配置前移
+          newButtonConfigs[keyIndex - 1] = this.config.button_configs.buttons[key];
+        }
+        // 等于的被删除按钮的配置不保留
+      });
+
+      // 更新配置
+      if (Object.keys(newButtonConfigs).length > 0) {
+        this.config.button_configs.buttons = newButtonConfigs;
+      } else {
+        // 如果没有配置了，删除整个 buttons 配置
+        delete this.config.button_configs.buttons;
+        // 如果 button_configs 为空，删除整个对象
+        if (Object.keys(this.config.button_configs).length === 0) {
+          delete this.config.button_configs;
+        }
+      }
+    }
+
     this.config = {
       ...this.config,
       buttons: buttons.length > 0 ? buttons : undefined
@@ -1040,6 +1363,34 @@ class XiaoshiPadClimateCardEditor extends LitElement {
     }
     if (this._showButton2Lists) {
       delete this._showButton2Lists[index2];
+    }
+
+    // 清理该按钮的配置，并重新索引后面的配置
+    if (this.config.button_configs && this.config.button_configs.buttons2) {
+      const newButtonConfigs = {};
+      Object.keys(this.config.button_configs.buttons2).forEach(key => {
+        const keyIndex = parseInt(key);
+        if (keyIndex < index2) {
+          // 保留索引小于被删除按钮的配置
+          newButtonConfigs[keyIndex] = this.config.button_configs.buttons2[key];
+        } else if (keyIndex > index2) {
+          // 将索引大于被删除按钮的配置前移
+          newButtonConfigs[keyIndex - 1] = this.config.button_configs.buttons2[key];
+        }
+        // 等于的被删除按钮的配置不保留
+      });
+
+      // 更新配置
+      if (Object.keys(newButtonConfigs).length > 0) {
+        this.config.button_configs.buttons2 = newButtonConfigs;
+      } else {
+        // 如果没有配置了，删除整个 buttons2 配置
+        delete this.config.button_configs.buttons2;
+        // 如果 button_configs 为空，删除整个对象
+        if (Object.keys(this.config.button_configs).length === 0) {
+          delete this.config.button_configs;
+        }
+      }
     }
 
     this.config = {
@@ -1213,6 +1564,364 @@ class XiaoshiPadClimateCardEditor extends LitElement {
     this._fireEvent();
   }
 
+  _toggleModeFilter(modeType) {
+    if (!this._modeFilterExpanded) {
+      this._modeFilterExpanded = {};
+    }
+    this._modeFilterExpanded[modeType] = !this._modeFilterExpanded[modeType];
+    this.requestUpdate();
+  }
+
+  _toggleModeItem(modeType, mode) {
+    if (!this._modeFilters) {
+      this._modeFilters = {};
+    }
+    if (!this._modeFilters[modeType]) {
+      this._modeFilters[modeType] = {};
+    }
+    this._modeFilters[modeType][mode] = !this._modeFilters[modeType][mode];
+
+    // 保存过滤配置到 config，只保存 false 的项
+    if (!this.config.mode_filters) {
+      this.config.mode_filters = {};
+    }
+    if (!this.config.mode_filters[modeType]) {
+      this.config.mode_filters[modeType] = {};
+    }
+    
+    // 只设置为 false 的模式，不保存 true 的
+    if (this._modeFilters[modeType][mode] === false) {
+      this.config.mode_filters[modeType][mode] = false;
+    } else {
+      delete this.config.mode_filters[modeType][mode];
+    }
+
+    this._fireEvent();
+    this.requestUpdate();
+  }
+
+  _toggleShowName(modeType, mode, show) {
+    if (!this.config.mode_configs) {
+      this.config.mode_configs = {};
+    }
+    if (!this.config.mode_configs[modeType]) {
+      this.config.mode_configs[modeType] = {};
+    }
+    if (!this.config.mode_configs[modeType][mode]) {
+      this.config.mode_configs[modeType][mode] = {};
+    }
+
+    if (show) {
+      delete this.config.mode_configs[modeType][mode].show_name;
+    } else {
+      this.config.mode_configs[modeType][mode].show_name = false;
+    }
+
+    this._fireEvent();
+    this.requestUpdate();
+  }
+
+  _updateCustomName(modeType, mode, name) {
+    if (!this.config.mode_configs) {
+      this.config.mode_configs = {};
+    }
+    if (!this.config.mode_configs[modeType]) {
+      this.config.mode_configs[modeType] = {};
+    }
+    if (!this.config.mode_configs[modeType][mode]) {
+      this.config.mode_configs[modeType][mode] = {};
+    }
+
+    if (name) {
+      this.config.mode_configs[modeType][mode].custom_name = name;
+    } else {
+      delete this.config.mode_configs[modeType][mode].custom_name;
+    }
+
+    this._fireEvent();
+    this.requestUpdate();
+  }
+
+  _toggleShowIcon(modeType, mode, show) {
+    if (!this.config.mode_configs) {
+      this.config.mode_configs = {};
+    }
+    if (!this.config.mode_configs[modeType]) {
+      this.config.mode_configs[modeType] = {};
+    }
+    if (!this.config.mode_configs[modeType][mode]) {
+      this.config.mode_configs[modeType][mode] = {};
+    }
+
+    if (show) {
+      delete this.config.mode_configs[modeType][mode].show_icon;
+    } else {
+      this.config.mode_configs[modeType][mode].show_icon = false;
+    }
+
+    this._fireEvent();
+    this.requestUpdate();
+  }
+
+  _updateCustomIcon(modeType, mode, icon) {
+    if (!this.config.mode_configs) {
+      this.config.mode_configs = {};
+    }
+    if (!this.config.mode_configs[modeType]) {
+      this.config.mode_configs[modeType] = {};
+    }
+    if (!this.config.mode_configs[modeType][mode]) {
+      this.config.mode_configs[modeType][mode] = {};
+    }
+
+    if (icon) {
+      this.config.mode_configs[modeType][mode].custom_icon = icon;
+    } else {
+      delete this.config.mode_configs[modeType][mode].custom_icon;
+    }
+
+    this._fireEvent();
+    this.requestUpdate();
+  }
+
+  _toggleButtonConfig(buttonType, index) {
+    if (!this._buttonConfigExpanded) {
+      this._buttonConfigExpanded = {};
+    }
+    if (!this._buttonConfigExpanded[buttonType]) {
+      this._buttonConfigExpanded[buttonType] = {};
+    }
+    this._buttonConfigExpanded[buttonType][index] = !this._buttonConfigExpanded[buttonType][index];
+    this.requestUpdate();
+  }
+
+  _getButtonConfig(buttonType, index) {
+    if (!this.config.button_configs) {
+      return null;
+    }
+    if (!this.config.button_configs[buttonType]) {
+      return null;
+    }
+    return this.config.button_configs[buttonType][index] || {};
+  }
+
+  _updateButtonCustomName(buttonType, index, name) {
+    if (!this.config.button_configs) {
+      this.config.button_configs = {};
+    }
+    if (!this.config.button_configs[buttonType]) {
+      this.config.button_configs[buttonType] = {};
+    }
+    if (!this.config.button_configs[buttonType][index]) {
+      this.config.button_configs[buttonType][index] = {};
+    }
+
+    if (name) {
+      this.config.button_configs[buttonType][index].custom_name = name;
+    } else {
+      delete this.config.button_configs[buttonType][index].custom_name;
+    }
+
+    this._fireEvent();
+    this.requestUpdate();
+  }
+
+  _updateButtonCustomIconOn(buttonType, index, icon) {
+    if (!this.config.button_configs) {
+      this.config.button_configs = {};
+    }
+    if (!this.config.button_configs[buttonType]) {
+      this.config.button_configs[buttonType] = {};
+    }
+    if (!this.config.button_configs[buttonType][index]) {
+      this.config.button_configs[buttonType][index] = {};
+    }
+
+    if (icon) {
+      this.config.button_configs[buttonType][index].custom_icon_on = icon;
+    } else {
+      delete this.config.button_configs[buttonType][index].custom_icon_on;
+    }
+
+    this._fireEvent();
+    this.requestUpdate();
+  }
+
+  _updateButtonCustomIconOff(buttonType, index, icon) {
+    if (!this.config.button_configs) {
+      this.config.button_configs = {};
+    }
+    if (!this.config.button_configs[buttonType]) {
+      this.config.button_configs[buttonType] = {};
+    }
+    if (!this.config.button_configs[buttonType][index]) {
+      this.config.button_configs[buttonType][index] = {};
+    }
+
+    if (icon) {
+      this.config.button_configs[buttonType][index].custom_icon_off = icon;
+    } else {
+      delete this.config.button_configs[buttonType][index].custom_icon_off;
+    }
+
+    this._fireEvent();
+    this.requestUpdate();
+  }
+
+  _renderButtonConfig(buttonType, index) {
+    if (!this.hass) return html``;
+
+    const buttonId = buttonType === 'buttons' ? (this.config.buttons || [])[index] : (this.config.buttons2 || [])[index];
+    if (!buttonId) return html``;
+
+    const entity = this.hass.states[buttonId];
+    if (!entity) return html``;
+
+    const domain = buttonId.split('.')[0];
+    const config = this._getButtonConfig(buttonType, index) || {};
+
+    // light/switch/button 类型显示自定义名称、自定义开启图标、自定义关闭图标
+    if (['light', 'switch', 'button'].includes(domain)) {
+      return html`
+        <div class="button-config-row">
+          <label>自定义名称</label>
+          <input
+            type="text"
+            .value=${config.custom_name || ''}
+            placeholder="留空使用默认名称"
+            @change=${(e) => this._updateButtonCustomName(buttonType, index, e.target.value)}
+            class="button-config-input"
+          />
+        </div>
+        <div class="button-config-row">
+          <label>自定义开启图标</label>
+          <input
+            type="text"
+            .value=${config.custom_icon_on || ''}
+            placeholder="留空使用默认图标"
+            @change=${(e) => this._updateButtonCustomIconOn(buttonType, index, e.target.value)}
+            class="button-config-input"
+          />
+        </div>
+        <div class="button-config-row">
+          <label>自定义关闭图标</label>
+          <input
+            type="text"
+            .value=${config.custom_icon_off || ''}
+            placeholder="留空使用默认图标"
+            @change=${(e) => this._updateButtonCustomIconOff(buttonType, index, e.target.value)}
+            class="button-config-input"
+          />
+        </div>
+      `;
+    }
+    // select/sensor 类型只显示自定义名称
+    else if (['select', 'sensor'].includes(domain)) {
+      return html`
+        <div class="button-config-row">
+          <label>自定义名称</label>
+          <input
+            type="text"
+            .value=${config.custom_name || ''}
+            placeholder="留空使用默认名称"
+            @change=${(e) => this._updateButtonCustomName(buttonType, index, e.target.value)}
+            class="button-config-input"
+          />
+        </div>
+      `;
+    }
+
+    return html``;
+  }
+
+  _renderModeFilter(modeType, title) {
+    if (!this.hass || !this.config.entity) return html``;
+    const entity = this.hass.states[this.config.entity];
+    if (!entity) return html``;
+
+    const attrs = entity.attributes;
+    let modes = [];
+    if (modeType === 'hvac_modes') modes = attrs.hvac_modes || [];
+    else if (modeType === 'fan_modes') modes = attrs.fan_modes || [];
+    else if (modeType === 'swing_modes') modes = attrs.swing_modes || [];
+    else if (modeType === 'preset_modes') modes = attrs.preset_modes || [];
+    else if (modeType === 'operation_list') modes = attrs.operation_list || [];
+
+    if (modes.length === 0) return html``;
+
+    const isExpanded = this._modeFilterExpanded?.[modeType] || false;
+    const filters = this._modeFilters?.[modeType] || {};
+    const modeConfig = this.config.mode_configs?.[modeType] || {};
+
+    // 计算选中的数量
+    const checkedCount = Object.values(filters).filter(v => v === true).length;
+    const totalCount = modes.length;
+
+    return html`
+      <div class="mode-filter-section">
+        <div class="mode-filter-header" @click=${() => this._toggleModeFilter(modeType)}>
+          <div class="mode-filter-title">
+            <ha-icon class="mode-filter-icon ${isExpanded ? 'expanded' : ''}" icon="mdi:chevron-right"></ha-icon>
+            <span>${title} (${checkedCount}/${totalCount})</span>
+          </div>
+        </div>
+        ${isExpanded ? html`
+          <div class="mode-filter-items">
+            ${modes.map(mode => html`
+              <div class="mode-filter-item-expanded">
+                <div class="mode-filter-header-row">
+                  <div class="mode-filter-left">
+                    <input
+                      type="checkbox"
+                      id="mode-${modeType}-${mode}"
+                      .checked=${filters[mode] !== false}
+                      @change=${() => this._toggleModeItem(modeType, mode)}
+                    />
+                    <label for="mode-${modeType}-${mode}">${mode}</label>
+                  </div>
+                </div>
+                <div class="mode-filter-config">
+                  <div class="mode-config-row">
+                    <input
+                      type="checkbox"
+                      id="show-name-${modeType}-${mode}"
+                      .checked=${modeConfig[mode]?.show_name !== false}
+                      @change=${(e) => this._toggleShowName(modeType, mode, e.target.checked)}
+                    />
+                    <label for="show-name-${modeType}-${mode}">显示名称</label>
+                  </div>
+                  <input
+                    type="text"
+                    .value=${modeConfig[mode]?.custom_name || ''}
+                    placeholder="自定义名称"
+                    @change=${(e) => this._updateCustomName(modeType, mode, e.target.value)}
+                    class="mode-config-input"
+                  />
+                  <div class="mode-config-row">
+                    <input
+                      type="checkbox"
+                      id="show-icon-${modeType}-${mode}"
+                      .checked=${modeConfig[mode]?.show_icon !== false}
+                      @change=${(e) => this._toggleShowIcon(modeType, mode, e.target.checked)}
+                    />
+                    <label for="show-icon-${modeType}-${mode}">显示图标</label>
+                  </div>
+                  <input
+                    type="text"
+                    .value=${modeConfig[mode]?.custom_icon || ''}
+                    placeholder="自定义图标"
+                    @change=${(e) => this._updateCustomIcon(modeType, mode, e.target.value)}
+                    class="mode-config-input"
+                  />
+                </div>
+              </div>
+            `)}
+          </div>
+        ` : ''}
+      </div>
+    `;
+  }
+
   _fireEvent() {
     this.dispatchEvent(new CustomEvent('config-changed', {
       detail: { config: this.config }
@@ -1237,6 +1946,9 @@ class XiaoshiPadClimateCardEditor extends LitElement {
     this._filteredButton2Entities = {};
     this._showButton2Lists = {};
     this._availableModes = {};
+    this._modeFilterExpanded = {};
+    this._modeFilters = {};
+    this._buttonConfigExpanded = {};
   }
 
   updated(changedProperties) {
@@ -1371,12 +2083,19 @@ class XiaoshiPadClimateCard extends LitElement {
         display: flex;
         align-items: center;
         justify-content: center;
+        flex-direction: column;
+        gap: 2px;
         --mdc-icon-size: 20px;
       }
 
       .mode-button .icon {
         width: 20px;
         height: 20px;
+        color: var(--fg-color);
+      }
+
+      .mode-button .mode-text {
+        font-size: 10px;
         color: var(--fg-color);
       }
 
@@ -1388,7 +2107,7 @@ class XiaoshiPadClimateCard extends LitElement {
         display: flex;
         align-items: center;
         justify-content: center;
-        gap: 0px;
+        gap: 4px;
         width: 100%;
         height: 100%;
         color: var(--fg-color);
@@ -1397,7 +2116,7 @@ class XiaoshiPadClimateCard extends LitElement {
       }
 
       .swing-text, .preset-text, .water-text {
-        font-size: 12px; 
+        font-size: 10px; 
         color: var(--fg-color);
       }
 
@@ -1918,13 +2637,17 @@ _renderExtraButtons(buttonType = 1) {
     else if (state === 'fan' || state === 'fan_only') activeColor = 'rgb(0,188,213)';
     else if (state === 'auto') activeColor = 'rgb(147,112,219)';
 
-    return buttonsToShow.map(buttonEntityId => {
+    const buttonConfigKey = buttonType === 1 ? 'buttons' : 'buttons2';
+
+    return buttonsToShow.map((buttonEntityId, index) => {
         const entity = this.hass.states[buttonEntityId];
         if (!entity) return html``;
 
         const domain = buttonEntityId.split('.')[0];
         const friendlyName = entity.attributes.friendly_name || '';
-        const displayName = friendlyName.slice(0, 4);
+        const buttonConfig = this.config.button_configs?.[buttonConfigKey]?.[index] || {};
+        const customName = buttonConfig.custom_name || friendlyName;
+        const displayName = customName.slice(0, 4);
         const displayValueColor = entity.state.includes('低') || entity.state.includes('少') || entity.state.includes('缺') ? 'red' : fgColor;
 
         // 根据名称自定义图标
@@ -1946,7 +2669,11 @@ _renderExtraButtons(buttonType = 1) {
             case 'light':
                 const isActive = entity.state === 'on';
                 const customIcon = _getCustomIcon(friendlyName, isActive);
-                const icon = customIcon || (isActive ? 'mdi:toggle-switch' : 'mdi:toggle-switch-off');
+                const icon = buttonConfig.custom_icon_on && isActive ? buttonConfig.custom_icon_on
+                          : buttonConfig.custom_icon_off && !isActive ? buttonConfig.custom_icon_off
+                          : customIcon
+                          ? customIcon
+                          : (isActive ? 'mdi:toggle-switch' : 'mdi:toggle-switch-off');
                 const buttonColor = isActive ? activeColor : fgColor;
 
                 return html`
@@ -1954,7 +2681,7 @@ _renderExtraButtons(buttonType = 1) {
                         class="side-extra-button ${isActive ? 'active-extra' : ''}"
                         @click=${() => this._handleExtraButtonClick(buttonEntityId, domain)}
                         style="--active-color: ${buttonColor}; --bg-color: ${bgColor};"
-                        title="${friendlyName}"
+                        title="${customName}"
                     >
                         <ha-icon class="side-icon" icon="${icon}" style="color: ${buttonColor}"></ha-icon>
                         <span class="side-text" style="color: ${buttonColor}">${displayName}</span>
@@ -1973,7 +2700,7 @@ _renderExtraButtons(buttonType = 1) {
                 `;
 
             case 'button':
-                const buttonIcon = 'mdi:button-pointer';
+                const buttonIcon = buttonConfig.custom_icon_on || buttonConfig.custom_icon_off || 'mdi:button-pointer';
 
                 return html`
                     <button class="side-extra-button"
@@ -1985,8 +2712,8 @@ _renderExtraButtons(buttonType = 1) {
                 `;
 
             case 'select':
-                const state = entity.state || '';
-                const selectDisplayValue = state.slice(0, 4);
+                const selectState = entity.state || '';
+                const selectDisplayValue = selectState.slice(0, 4);
 
                 return html`
                     <div class="side-extra-button"
@@ -2089,6 +2816,7 @@ _renderExtraButtons(buttonType = 1) {
       const entity = this.hass.states[this.config.entity];
       const state = entity ? entity.state : 'off';
       const theme = this._evaluateTheme();
+      const modeConfigs = this.config.mode_configs?.hvac_modes || {};
 
       const modeIcons = {
           'auto': 'mdi:thermostat-auto',
@@ -2100,10 +2828,21 @@ _renderExtraButtons(buttonType = 1) {
           'off': 'mdi:power'
       };
 
-      return modes.map(mode => {
+      // 应用过滤器
+      const filters = this.config.mode_filters?.hvac_modes || {};
+      const filteredModes = modes.filter(mode => filters[mode] !== false);
+
+      return filteredModes.map(mode => {
           const isActive = mode === currentMode;
           let bgColor = 'rgb(0,0,0,0)';
-          const fgColor = theme === 'on' ? 'rgb(0, 0, 0)' : 'rgb(255, 255, 255)';
+          const config = modeConfigs[mode] || {};
+          
+          // 获取自定义配置
+          const showName = config.show_name !== false;
+          const showIcon = config.show_icon !== false;
+          const customName = config.custom_name || this._translateMode(mode);
+          const customIcon = config.custom_icon || modeIcons[mode] || 'mdi:thermostat';
+          
           if (isActive) {
               if (state === 'cool' && mode === 'cool') bgColor = 'rgb(33,150,243)';
               else if (state === 'heat' && mode === 'heat') bgColor = 'rgb(254,111,33)';
@@ -2117,9 +2856,10 @@ _renderExtraButtons(buttonType = 1) {
                   class="mode-button ${isActive ? 'active-mode' : ''}"
                   @click=${() => this._setHvacMode(mode)}
                   style="--active-color: ${bgColor}; background: ${isActive ? bgColor : 'rgb(0,0,0,0)'}"
-                  title="${this._translateMode(mode)}"
+                  title="${customName}"
               >
-                  <ha-icon class="icon" icon="${modeIcons[mode] || 'mdi:thermostat'}" style="color: ${isActive ? (theme === 'on' ? 'rgb(0,0,0)' : 'rgb(255,255,255)') : ''}"></ha-icon>
+                  ${showIcon ? html`<ha-icon class="icon" icon="${customIcon}" style="color: ${isActive ? (theme === 'on' ? 'rgb(0,0,0)' : 'rgb(255,255,255)') : ''}"></ha-icon>` : ''}
+                  ${showName ? html`<span class="mode-text" style="font-size: 10px; color: ${isActive ? (theme === 'on' ? 'rgb(0,0,0)' : 'rgb(255,255,255)') : ''}">${customName}</span>` : ''}
               </button>
           `;
       });
@@ -2131,11 +2871,23 @@ _renderExtraButtons(buttonType = 1) {
     const entity = this.hass.states[this.config.entity];
     const state = entity ? entity.state : 'off';
     const theme = this._evaluateTheme();
+    const modeConfigs = this.config.mode_configs?.fan_modes || {};
 
-    return fanModes.map((mode, index) => {
+    // 应用过滤器
+    const filters = this.config.mode_filters?.fan_modes || {};
+    const filteredModes = fanModes.filter(mode => filters[mode] !== false);
+
+    return filteredModes.map((mode, index) => {
         const isActive = mode === currentFanMode;
         let bgColor = 'rgb(0,0,0)';
-
+        const config = modeConfigs[mode] || {};
+        
+        // 获取自定义配置
+        const showName = config.show_name !== false;
+        const showIcon = config.show_icon !== false;
+        const customName = config.custom_name || this._translateFanMode(mode);
+        const customIcon = config.custom_icon || 'mdi:fan';
+        
         if (isActive) {
             if (state === 'cool') bgColor = 'rgb(33,150,243)';
             else if (state === 'heat') bgColor = 'rgb(254,111,33)';
@@ -2151,13 +2903,15 @@ _renderExtraButtons(buttonType = 1) {
                 @click=${() => this._setFanMode(mode)}
                 style="--active-color: ${bgColor}; background: ${isActive ? bgColor : 'rgb(0,0,0,0)'}"
             >
-                <div class="fan-button">
-                    <ha-icon
-                        class="fan-button-icon ${isActive ? 'active-fan-button-icon' : ''}"
-                        icon="mdi:fan"
-                        style="color: ${isActive ? (theme === 'on' ? 'rgb(0,0,0)' : 'rgb(255,255,255)') : ''}"
-                    ></ha-icon>
-                    <span class="fan-text">${this._translateFanMode(mode)}</span>
+                <div class="fan-button" style="gap: 4px; flex-direction: column;">
+                    ${showIcon ? html`
+                        <ha-icon
+                            class="fan-button-icon ${isActive ? 'active-fan-button-icon' : ''}"
+                            icon="${customIcon}"
+                            style="color: ${isActive ? (theme === 'on' ? 'rgb(0,0,0)' : 'rgb(255,255,255)') : ''}"
+                        ></ha-icon>
+                    ` : ''}
+                    ${showName ? html`<span class="fan-text" style="color: ${isActive ? (theme === 'on' ? 'rgb(0,0,0)' : 'rgb(255,255,255)') : ''}">${customName}</span>` : ''}
                 </div>
             </button>
         `;
@@ -2170,11 +2924,23 @@ _renderExtraButtons(buttonType = 1) {
       const entity = this.hass.states[this.config.entity];
       const state = entity ? entity.state : 'off';
       const theme = this._evaluateTheme();
+      const modeConfigs = this.config.mode_configs?.swing_modes || {};
 
-      return swingModes.map(mode => {
+      // 应用过滤器
+      const filters = this.config.mode_filters?.swing_modes || {};
+      const filteredModes = swingModes.filter(mode => filters[mode] !== false);
+
+      return filteredModes.map(mode => {
           const isActive = mode === currentSwingMode;
           let bgColor = 'rgb(0,0,0,0)';
-
+          const config = modeConfigs[mode] || {};
+          
+          // 获取自定义配置
+          const showName = config.show_name !== false;
+          const showIcon = config.show_icon !== false;
+          const customName = config.custom_name || this._translateSwingMode(mode);
+          const customIcon = config.custom_icon || this._getSwingIcon(mode);
+          
           if (isActive) {
               if (state === 'cool') bgColor = 'rgb(33,150,243)';
               else if (state === 'heat') bgColor = 'rgb(254,111,33)';
@@ -2190,8 +2956,8 @@ _renderExtraButtons(buttonType = 1) {
                   style="--active-color: ${bgColor}; background: ${isActive ? bgColor : 'rgb(0,0,0,0)'}"
               >
                   <div class="swing-button">
-                      <ha-icon class="icon" icon="${this._getSwingIcon(mode)}" style="color: ${isActive ? (theme === 'on' ? 'rgb(0,0,0)' : 'rgb(255,255,255)') : ''}"></ha-icon>
-                      <span class="swing-text">${this._translateSwingMode(mode)}</span>
+                      ${showIcon ? html`<ha-icon class="icon" icon="${customIcon}" style="color: ${isActive ? (theme === 'on' ? 'rgb(0,0,0)' : 'rgb(255,255,255)') : ''}"></ha-icon>` : ''}
+                      ${showName ? html`<span class="swing-text" style="color: ${isActive ? (theme === 'on' ? 'rgb(0,0,0)' : 'rgb(255,255,255)') : ''}">${customName}</span>` : ''}
                   </div>
               </button>
           `;
@@ -2204,11 +2970,23 @@ _renderExtraButtons(buttonType = 1) {
       const entity = this.hass.states[this.config.entity];
       const state = entity ? entity.state : 'off';
       const theme = this._evaluateTheme();
+      const modeConfigs = this.config.mode_configs?.preset_modes || {};
 
-      return presetModes.map(mode => {
+      // 应用过滤器
+      const filters = this.config.mode_filters?.preset_modes || {};
+      const filteredModes = presetModes.filter(mode => filters[mode] !== false);
+
+      return filteredModes.map(mode => {
           const isActive = mode === currentPresetMode;
           let bgColor = 'rgb(0,0,0,0)';
-
+          const config = modeConfigs[mode] || {};
+          
+          // 获取自定义配置
+          const showName = config.show_name !== false;
+          const showIcon = config.show_icon !== false;
+          const customName = config.custom_name || this._translatePresetMode(mode);
+          const customIcon = config.custom_icon || this._getPresetIcon(mode);
+          
           if (isActive) {
               if (state === 'cool') bgColor = 'rgb(33,150,243)';
               else if (state === 'heat') bgColor = 'rgb(254,111,33)';
@@ -2224,8 +3002,8 @@ _renderExtraButtons(buttonType = 1) {
                   style="--active-color: ${bgColor}; background: ${isActive ? bgColor : 'rgb(0,0,0,0)'}"
               >
                   <div class="preset-button">
-                      <ha-icon class="icon" icon="${this._getPresetIcon(mode)}" style="color: ${isActive ? (theme === 'on' ? 'rgb(0,0,0)' : 'rgb(255,255,255)') : ''}"></ha-icon>
-                      <span class="preset-text">${this._translatePresetMode(mode)}</span>
+                      ${showIcon ? html`<ha-icon class="icon" icon="${customIcon}" style="color: ${isActive ? (theme === 'on' ? 'rgb(0,0,0)' : 'rgb(255,255,255)') : ''}"></ha-icon>` : ''}
+                      ${showName ? html`<span class="preset-text" style="color: ${isActive ? (theme === 'on' ? 'rgb(0,0,0)' : 'rgb(255,255,255)') : ''}">${customName}</span>` : ''}
                   </div>
               </button>
           `;
@@ -2238,11 +3016,23 @@ _renderExtraButtons(buttonType = 1) {
     const entity = this.hass.states[this.config.entity];
     const state = entity ? entity.state : 'off';
     const theme = this._evaluateTheme();
+    const modeConfigs = this.config.mode_configs?.operation_list || {};
 
-    return operation_list.map(mode => {
+    // 应用过滤器
+    const filters = this.config.mode_filters?.operation_list || {};
+    const filteredModes = operation_list.filter(mode => filters[mode] !== false);
+
+    return filteredModes.map(mode => {
         const isActive = mode === operation_mode;
         let bgColor = 'rgb(0,0,0,0)';
-
+        const config = modeConfigs[mode] || {};
+        
+        // 获取自定义配置
+        const showName = config.show_name !== false;
+        const showIcon = config.show_icon !== false;
+        const customName = config.custom_name || mode;
+        const customIcon = config.custom_icon || 'mdi:water';
+        
         if (isActive) {
             if (state === 'cool') bgColor = 'rgb(33,150,243)';
             else if (state === 'heat') bgColor = 'rgb(254,111,33)';
@@ -2258,7 +3048,8 @@ _renderExtraButtons(buttonType = 1) {
                 style="--active-color: ${bgColor}; background: ${isActive ? bgColor : 'rgb(0,0,0,0)'}"
             >
                 <div class="water-button">
-                    <span class="water-text">${mode}</span>
+                    ${showIcon ? html`<ha-icon class="icon" icon="${customIcon}" style="color: ${isActive ? (theme === 'on' ? 'rgb(0,0,0)' : 'rgb(255,255,255)') : ''}"></ha-icon>` : ''}
+                    ${showName ? html`<span class="water-text" style="color: ${isActive ? (theme === 'on' ? 'rgb(0,0,0)' : 'rgb(255,255,255)') : ''}">${customName}</span>` : ''}
                 </div>
             </button>
         `;
