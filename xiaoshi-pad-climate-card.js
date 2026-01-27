@@ -23,7 +23,10 @@ class XiaoshiPadClimateCardEditor extends LitElement {
       _availableModes: { type: Object },
       _modeFilterExpanded: { type: Object },
       _modeFilters: { type: Object },
-      _buttonConfigExpanded: { type: Object }
+      _buttonConfigExpanded: { type: Object },
+      _selectSearchTerm: { type: String },
+      _filteredSelectEntities: { type: Array },
+      _showSelectList: { type: Boolean }
     };
   }
 
@@ -47,7 +50,7 @@ class XiaoshiPadClimateCardEditor extends LitElement {
     const allEntities = Object.values(this.hass.states);
     const firstEntity = allEntities.find(entity => {
       const entityId = entity.entity_id;
-      return entityId.startsWith('climate.') || entityId.startsWith('water_heater.');
+      return entityId.startsWith('climate.') || entityId.startsWith('water_heater.') || entityId.startsWith('humidifier.');
     });
 
     if (firstEntity) {
@@ -62,6 +65,7 @@ class XiaoshiPadClimateCardEditor extends LitElement {
         this._showEntityList = false;
         this._showTemperatureList = false;
         this._showTimerList = false;
+        this._showSelectList = false;
 
         // 关闭所有按钮的下拉列表
         if (this._showButtonLists) {
@@ -90,13 +94,13 @@ class XiaoshiPadClimateCardEditor extends LitElement {
     // 获取所有实体
     const allEntities = Object.values(this.hass.states);
 
-    // 过滤实体，只显示 climate 和 water_heater 开头的实体
+    // 过滤实体，只显示 climate、water_heater 和 humidifier 开头的实体
     this._filteredEntities = allEntities.filter(entity => {
       const entityId = entity.entity_id.toLowerCase();
       const friendlyName = (entity.attributes.friendly_name || '').toLowerCase();
 
-      // 只显示 climate. 和 water_heater. 开头的实体
-      const isClimateEntity = entityId.startsWith('climate.') || entityId.startsWith('water_heater.');
+      // 只显示 climate.、water_heater. 和 humidifier. 开头的实体
+      const isClimateEntity = entityId.startsWith('climate.') || entityId.startsWith('water_heater.') || entityId.startsWith('humidifier.');
       const matchesSearch = entityId.includes(searchTerm) || friendlyName.includes(searchTerm);
 
       return isClimateEntity && matchesSearch;
@@ -131,12 +135,16 @@ class XiaoshiPadClimateCardEditor extends LitElement {
     if (!this.hass || !this.hass.states[entityId]) return;
 
     const attrs = this.hass.states[entityId].attributes;
+    const isHumidifierEntity = entityId?.startsWith('humidifier.');
+    
     this._availableModes = {
       hasHvacModes: attrs.hvac_modes && attrs.hvac_modes.length > 0,
       hasFanModes: attrs.fan_modes && attrs.fan_modes.length > 0,
       hasSwingModes: attrs.swing_modes && attrs.swing_modes.length > 0,
       hasPresetModes: attrs.preset_modes && attrs.preset_modes.length > 0,
-      hasWaterModes: attrs.operation_list && attrs.operation_list.length > 0
+      hasWaterModes: attrs.operation_list && attrs.operation_list.length > 0,
+      hasHumidifierModes: attrs.available_modes && attrs.available_modes.length > 0,
+      hasHumidifierSwitch: isHumidifierEntity
     };
 
     // 如果用户没有手动配置显示选项，则根据自动识别结果设置默认值
@@ -154,6 +162,12 @@ class XiaoshiPadClimateCardEditor extends LitElement {
     }
     if (this.config.show_water_modes === undefined) {
       this.config.show_water_modes = this._availableModes.hasWaterModes;
+    }
+    if (this.config.show_humidifier_modes === undefined) {
+      this.config.show_humidifier_modes = this._availableModes.hasHumidifierModes;
+    }
+    if (this.config.show_humidifier_switch === undefined) {
+      this.config.show_humidifier_switch = this._availableModes.hasHumidifierSwitch;
     }
 
     // 初始化模式过滤器和展开状态（如果没有配置）
@@ -195,6 +209,19 @@ class XiaoshiPadClimateCardEditor extends LitElement {
       attrs.operation_list.forEach(mode => {
         this._modeFilters.operation_list[mode] = this.config.mode_filters?.operation_list?.[mode] === false ? false : true;
       });
+    }
+    if (attrs.available_modes && attrs.available_modes.length > 0) {
+      this._modeFilters.available_modes = {};
+      attrs.available_modes.forEach(mode => {
+        this._modeFilters.available_modes[mode] = this.config.mode_filters?.available_modes?.[mode] === false ? false : true;
+      });
+    }
+    // 初始化加湿器硬编码开关模式过滤器
+    if (isHumidifierEntity) {
+      this._modeFilters.humidifier_switch = {
+        'on': this.config.mode_filters?.humidifier_switch?.['on'] === false ? false : true,
+        'off': this.config.mode_filters?.humidifier_switch?.['off'] === false ? false : true
+      };
     }
   }
 
@@ -799,7 +826,7 @@ class XiaoshiPadClimateCardEditor extends LitElement {
       <div class="form">
         <!-- 主实体选择 -->
         <div class="form-group">
-          <label>空调/水暖毯/热水器实体 (必选)</label>
+          <label>空调/水暖毯/热水器/加湿器实体 (必选)</label>
           <div class="entity-selector">
             <input
               type="text"
@@ -865,6 +892,12 @@ class XiaoshiPadClimateCardEditor extends LitElement {
               ${this._availableModes?.hasWaterModes ?
                 html`<div class="mode-badge has-mode">✓ 热水器模式(operation_list)</div>` :
                 html`<div class="mode-badge no-mode">✗ 热水器模式(operation_list)</div>`}
+              ${this._availableModes?.hasHumidifierModes ?
+                html`<div class="mode-badge has-mode">✓ 加湿器模式(available_modes)</div>` :
+                html`<div class="mode-badge no-mode">✗ 加湿器模式(available_modes)</div>`}
+              ${this._availableModes?.hasHumidifierSwitch ?
+                html`<div class="mode-badge has-mode">✓ 加湿器开关</div>` :
+                html`<div class="mode-badge no-mode">✗ 加湿器开关</div>`}
             </div>
             ${Object.keys(this._availableModes).length === 0 ? html`
               <div style="color: #666; font-size: 12px; margin-bottom: 8px;">
@@ -932,7 +965,87 @@ class XiaoshiPadClimateCardEditor extends LitElement {
                   ${this._renderModeFilter('operation_list', '热水器模式筛选')}
                 </div>
               ` : ''}
+              ${this._availableModes?.hasHumidifierModes ? html`
+                <div style="display: flex; flex-direction: column; gap: 4px;">
+                  <div style="display: flex; align-items: center; gap: 8px;">
+                    <ha-switch
+                      .checked=${this.config.show_humidifier_modes !== false}
+                      @change=${this._showHumidifierModesChanged}
+                    ></ha-switch>
+                    <span>显示加湿器模式按钮</span>
+                  </div>
+                  ${this._renderModeFilter('available_modes', '加湿器模式筛选')}
+                </div>
+              ` : ''}
+              ${this._availableModes?.hasHumidifierSwitch ? html`
+                <div style="display: flex; flex-direction: column; gap: 4px;">
+                  <div style="display: flex; align-items: center; gap: 8px;">
+                    <ha-switch
+                      .checked=${this.config.show_humidifier_switch !== false}
+                      @change=${this._showHumidifierSwitchChanged}
+                    ></ha-switch>
+                    <span>显示加湿器开关按钮</span>
+                  </div>
+                  ${this._renderModeFilter('humidifier_switch', '加湿器开关筛选')}
+                </div>
+              ` : ''}
+
+              <!-- 自选Select实体 -->
+              <div style="display: flex; flex-direction: column; gap: 4px;">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                  <ha-switch
+                    .checked=${this.config.show_select_modes === true}
+                    @change=${this._showSelectModesChanged}
+                  ></ha-switch>
+                  <span>显示自选Select实体按钮</span>
+                </div>
+              </div>
             </div>
+
+            <!-- Select实体选择器 -->
+            ${this.config.show_select_modes === true ? html`
+              <div class="form-group" style="margin-top: 12px;">
+                <label>选择Select实体</label>
+                <div class="entity-selector">
+                  <input
+                    type="text"
+                    @input=${this._onSelectEntitySearch}
+                    @focus=${this._onSelectEntitySearch}
+                    .value=${this._selectSearchTerm || this.config?.select_entity || ''}
+                    placeholder="搜索Select实体..."
+                    class="entity-search-input"
+                  />
+                  ${this._showSelectList ? html`
+                    <div class="entity-dropdown">
+                      ${this._filteredSelectEntities.map(entity => html`
+                        <div
+                          class="entity-option ${this.config?.select_entity === entity.entity_id ? 'selected' : ''}"
+                          @click=${() => this._selectSelectEntity(entity.entity_id)}
+                        >
+                          <div class="entity-info">
+                            <ha-icon icon="${entity.attributes.icon || 'mdi:help-circle'}"></ha-icon>
+                            <div class="entity-details">
+                              <div class="entity-name">${entity.attributes.friendly_name || entity.entity_id}</div>
+                              <div class="entity-id">${entity.entity_id}</div>
+                            </div>
+                          </div>
+                          ${this.config?.select_entity === entity.entity_id ?
+                            html`<ha-icon icon="mdi:check" class="check-icon"></ha-icon>` : ''}
+                        </div>
+                      `)}
+                      ${this._filteredSelectEntities.length === 0 ? html`
+                        <div class="no-results">未找到匹配的Select实体</div>
+                      ` : ''}
+                    </div>
+                  ` : ''}
+                </div>
+                ${this.config.select_entity ? html`
+                  <div style="margin-top: 8px;">
+                    ${this._renderModeFilter('select_modes', 'Select模式筛选')}
+                  </div>
+                ` : ''}
+              </div>
+            ` : ''}
 
             <!-- 模式过滤器已移至各个开关下方 -->
           </div>
@@ -1534,6 +1647,93 @@ class XiaoshiPadClimateCardEditor extends LitElement {
     this._fireEvent();
   }
 
+  _showHumidifierModesChanged(ev) {
+    if (!this.config) return;
+    this.config = {
+      ...this.config,
+      show_humidifier_modes: ev.target.checked
+    };
+    this._fireEvent();
+  }
+
+  _showHumidifierSwitchChanged(ev) {
+    if (!this.config) return;
+    this.config = {
+      ...this.config,
+      show_humidifier_switch: ev.target.checked
+    };
+    this._fireEvent();
+  }
+
+  _showSelectModesChanged(ev) {
+    if (!this.config) return;
+    this.config = {
+      ...this.config,
+      show_select_modes: ev.target.checked
+    };
+    this._fireEvent();
+  }
+
+  _onSelectEntitySearch(e) {
+    const searchTerm = e.target.value.toLowerCase();
+    this._selectSearchTerm = searchTerm;
+    this._showSelectList = true;
+
+    if (!this.hass) return;
+
+    // 获取所有实体
+    const allEntities = Object.values(this.hass.states);
+
+    // 过滤实体，只显示 select. 开头的实体
+    this._filteredSelectEntities = allEntities.filter(entity => {
+      const entityId = entity.entity_id.toLowerCase();
+      const friendlyName = (entity.attributes.friendly_name || '').toLowerCase();
+
+      // 只显示 select. 开头的实体
+      const isSelectEntity = entityId.startsWith('select.');
+      const matchesSearch = entityId.includes(searchTerm) || friendlyName.includes(searchTerm);
+
+      return isSelectEntity && matchesSearch;
+    }).slice(0, 50); // 限制显示数量
+
+    this.requestUpdate();
+  }
+
+  _selectSelectEntity(entityId) {
+    this.config = {
+      ...this.config,
+      select_entity: entityId
+    };
+
+    this._selectSearchTerm = ''; // 清空搜索词
+    this._showSelectList = false; // 关闭下拉列表
+
+    // 检测Select实体的可用选项
+    this._detectSelectModes(entityId);
+
+    this._fireEvent();
+    this.requestUpdate();
+  }
+
+  _detectSelectModes(entityId) {
+    if (!this.hass || !this.hass.states[entityId]) return;
+
+    const attrs = this.hass.states[entityId].attributes;
+    const options = attrs.options || [];
+
+    // 初始化Select模式的过滤器
+    if (!this._modeFilters) {
+      this._modeFilters = {};
+    }
+
+    if (options.length > 0) {
+      this._modeFilters.select_modes = {};
+      options.forEach(option => {
+        this._modeFilters.select_modes[option] = this.config.mode_filters?.select_modes?.[option] === false ? false : true;
+      });
+    }
+  }
+
   _buttonPositionChanged(e) {
     if (!this.config) return;
     const buttonPosition = e.target.value;
@@ -1835,6 +2035,89 @@ class XiaoshiPadClimateCardEditor extends LitElement {
   }
 
   _renderModeFilter(modeType, title) {
+    // 对于select_modes，需要检查select_entity
+    if (modeType === 'select_modes') {
+      if (!this.hass || !this.config.select_entity) return html``;
+      const selectEntity = this.hass.states[this.config.select_entity];
+      if (!selectEntity) return html``;
+      const selectAttrs = selectEntity.attributes;
+      const modes = selectAttrs.options || [];
+      if (modes.length === 0) return html``;
+
+      const isExpanded = this._modeFilterExpanded?.[modeType] || false;
+      const filters = this._modeFilters?.[modeType] || {};
+      const modeConfig = this.config.mode_configs?.[modeType] || {};
+
+      // 计算选中的数量
+      const checkedCount = Object.values(filters).filter(v => v === true).length;
+      const totalCount = modes.length;
+
+      return html`
+        <div class="mode-filter-section">
+          <div class="mode-filter-header" @click=${() => this._toggleModeFilter(modeType)}>
+            <div class="mode-filter-title">
+              <ha-icon class="mode-filter-icon ${isExpanded ? 'expanded' : ''}" icon="mdi:chevron-right"></ha-icon>
+              <span>${title} (${checkedCount}/${totalCount})</span>
+            </div>
+          </div>
+          ${isExpanded ? html`
+            <div class="mode-filter-items">
+              ${modes.map(mode => html`
+                <div class="mode-filter-item-expanded">
+                  <div class="mode-filter-header-row">
+                    <div class="mode-filter-left">
+                      <input
+                        type="checkbox"
+                        id="mode-${modeType}-${mode}"
+                        .checked=${filters[mode] !== false}
+                        @change=${() => this._toggleModeItem(modeType, mode)}
+                      />
+                      <label for="mode-${modeType}-${mode}">${mode}</label>
+                    </div>
+                  </div>
+                  <div class="mode-filter-config">
+                    <div class="mode-config-row">
+                      <input
+                        type="checkbox"
+                        id="show-name-${modeType}-${mode}"
+                        .checked=${modeConfig[mode]?.show_name !== false}
+                        @change=${(e) => this._toggleShowName(modeType, mode, e.target.checked)}
+                      />
+                      <label for="show-name-${modeType}-${mode}">显示名称</label>
+                    </div>
+                    <input
+                      type="text"
+                      .value=${modeConfig[mode]?.custom_name || ''}
+                      placeholder="自定义名称"
+                      @change=${(e) => this._updateCustomName(modeType, mode, e.target.value)}
+                      class="mode-config-input"
+                    />
+                    <div class="mode-config-row">
+                      <input
+                        type="checkbox"
+                        id="show-icon-${modeType}-${mode}"
+                        .checked=${modeConfig[mode]?.show_icon !== false}
+                        @change=${(e) => this._toggleShowIcon(modeType, mode, e.target.checked)}
+                      />
+                      <label for="show-icon-${modeType}-${mode}">显示图标</label>
+                    </div>
+                    <input
+                      type="text"
+                      .value=${modeConfig[mode]?.custom_icon || ''}
+                      placeholder="自定义图标 (如: mdi:fan)"
+                      @change=${(e) => this._updateCustomIcon(modeType, mode, e.target.value)}
+                      class="mode-config-input"
+                    />
+                  </div>
+                </div>
+              `)}
+            </div>
+          ` : ''}
+        </div>
+      `;
+    }
+
+    // 其他模式类型使用主实体
     if (!this.hass || !this.config.entity) return html``;
     const entity = this.hass.states[this.config.entity];
     if (!entity) return html``;
@@ -1846,6 +2129,8 @@ class XiaoshiPadClimateCardEditor extends LitElement {
     else if (modeType === 'swing_modes') modes = attrs.swing_modes || [];
     else if (modeType === 'preset_modes') modes = attrs.preset_modes || [];
     else if (modeType === 'operation_list') modes = attrs.operation_list || [];
+    else if (modeType === 'available_modes') modes = attrs.available_modes || [];
+    else if (modeType === 'humidifier_switch') modes = ['on', 'off'];
 
     if (modes.length === 0) return html``;
 
@@ -2064,7 +2349,7 @@ class XiaoshiPadClimateCard extends LitElement {
         --area-bg: rgb(80,80,80);                        /*按钮区域背景色*/
       }
 
-      .modes-area, .fan-area, .preset-area, .swing-area, .water-area {
+      .modes-area, .fan-area, .preset-area, .swing-area, .water-area, .humidifier-area {
         display: flex;
         flex-wrap: nowrap;
         gap: 2px;
@@ -2205,8 +2490,9 @@ class XiaoshiPadClimateCard extends LitElement {
     }
   }
 
-  firstUpdated() {
+  async firstUpdated() {
     super.firstUpdated();
+    await this._preloadHumidifierCard();
     this._loadOfficialThermostat();
   }
 
@@ -2233,7 +2519,7 @@ class XiaoshiPadClimateCard extends LitElement {
     const allEntities = Object.values(this.hass.states);
     const firstEntity = allEntities.find(entity => {
       const entityId = entity.entity_id;
-      return entityId.startsWith('climate.') || entityId.startsWith('water_heater.');
+      return entityId.startsWith('climate.') || entityId.startsWith('water_heater.') || entityId.startsWith('humidifier.');
     });
     return firstEntity ? firstEntity.entity_id : null;
   }
@@ -2244,17 +2530,86 @@ class XiaoshiPadClimateCard extends LitElement {
     const container = this.shadowRoot?.querySelector('#thermostatContainer');
     if (!container) return;
 
-    // 创建 hui-thermostat-card 元素
-    const thermostatCard = document.createElement('hui-thermostat-card');
-    thermostatCard.hass = this.hass;
-    thermostatCard.setConfig({
-      type: 'thermostat',
+    // 根据实体类型选择不同的官方卡片
+    const entity = this.config.entity || '';
+    const entityType = entity.split('.')[0] || 'climate';
+
+    let cardType = 'thermostat';
+    if (entityType === 'humidifier') {
+      cardType = 'humidifier';
+    }
+
+    // 检查对应的官方卡片是否已注册
+    const cardName = `hui-${cardType}-card`;
+    if (!customElements.get(cardName)) {
+      console.warn(`${cardName} 未注册，跳过加载官方卡片`);
+      return;
+    }
+
+    // 创建对应的官方卡片元素
+    const card = document.createElement(cardName);
+    card.hass = this.hass;
+    card.setConfig({
+      type: cardType,
       entity: this.config.entity
     });
 
     // 清空容器并添加元素
     container.innerHTML = '';
-    container.appendChild(thermostatCard);
+    container.appendChild(card);
+  }
+
+  // 预加载 humidifier 卡片组件
+  async _preloadHumidifierCard() {
+    const entity = this.config.entity || '';
+    const entityType = entity.split('.')[0] || 'climate';
+
+    if (entityType === 'humidifier') {
+      const cardName = 'hui-humidifier-card';
+      if (customElements.get(cardName)) {
+        return; // 已注册，无需加载
+      }
+     
+      const helpers = await window.loadCardHelpers?.();
+      if (helpers) {
+        const card = await helpers.createCardElement({
+          type: 'humidifier',
+          entity: this.config.entity
+        });
+        // 将卡片添加到 DOM 以触发组件注册
+        const container = document.createElement('div');
+        container.style.display = 'none';
+        document.body.appendChild(container);
+        container.appendChild(card);
+
+        // 等待组件注册
+        await this._waitForCardRegistration(cardName);
+
+        // 清理临时元素
+        document.body.removeChild(container);
+      }
+    }
+  }
+
+  // 等待卡片组件注册
+  _waitForCardRegistration(cardName, timeout = 10000) {
+    return new Promise((resolve, reject) => {
+      if (customElements.get(cardName)) {
+        resolve();
+        return;
+      }
+
+      const startTime = Date.now();
+      const interval = setInterval(() => {
+        if (customElements.get(cardName)) {
+          clearInterval(interval);
+          resolve();
+        } else if (Date.now() - startTime > timeout) {
+          clearInterval(interval);
+          reject(new Error(`等待 ${cardName} 注册超时`));
+        }
+      }, 10);
+    });
   }
 
   disconnectedCallback() {
@@ -2295,47 +2650,29 @@ class XiaoshiPadClimateCard extends LitElement {
         return html`<div>实体未找到: ${this.config.entity}</div>`;
     }
     const state = entity.state;
-
     const attrs = entity.attributes;
-
-    let current_temperature = '';
-    if (this._externalTempSensor) {
-      const tempEntity = this.hass.states[this._externalTempSensor];
-      if (tempEntity && !isNaN(parseFloat(tempEntity.state))) {
-        current_temperature = `室温: ${parseFloat(tempEntity.state).toFixed(1)}°C`;
-      }
-    } else if (typeof entity.attributes.current_temperature === 'number') {
-      current_temperature = `室温: ${entity.attributes.current_temperature.toFixed(1)}°C`;
-    }
-
-
     const theme = this._evaluateTheme();
     const themeClass = theme === 'on' ? 'theme-on' : 'theme-off';
 
     const fgColor = theme === 'on' ? 'rgb(0, 0, 0)' : 'rgb(255, 255, 255)';
     const bgColor = theme === 'on' ? 'rgb(255, 255, 255)' : 'rgb(50, 50, 50)';
-    const buttonBg = theme === 'on' ? 'rgb(50,50,50)' : 'rgb(120,120,120)';
-    const buttonFg = 'rgb(250,250,250)';
-
-    let statusColor = 'rgb(250,250,250)';
-    if (state === 'cool') statusColor = 'rgb(33,150,243)';
-    else if (state === 'heat') statusColor = 'rgb(254,111,33)';
-    else if (state === '自定义') statusColor = 'rgb(254,111,33)';
-    else if (state === 'AI控温') statusColor = 'rgb(254,111,33)';
-    else if (state === '婴童洗') statusColor = 'rgb(254,111,33)';
-    else if (state === '舒适洗') statusColor = 'rgb(254,111,33)';
-    else if (state === '宠物洗') statusColor = 'rgb(254,111,33)';
-    else if (state === '厨房用') statusColor = 'rgb(254,111,33)';
-    else if (state === 'dry') statusColor = 'rgb(255,151,0)';
-    else if (state === 'fan' || state === 'fan_only') statusColor = 'rgb(0,188,213)';
-    else if (state === 'auto') statusColor = 'rgb(147,112,219)'
-    else if (state === 'off') statusColor = 'rgb(250,250,250)';
 
     const hasHvacModes = attrs.hvac_modes && attrs.hvac_modes.length > 0;
     const hasFanModes = attrs.fan_modes && attrs.fan_modes.length > 0;
     const hasSwingModes = attrs.swing_modes && attrs.swing_modes.length > 0;
     const hasPresetModes = attrs.preset_modes && attrs.preset_modes.length > 0;
     const hasWaterModes = attrs.operation_list && attrs.operation_list.length > 0;
+    const hasHumidifierModes = attrs.available_modes && attrs.available_modes.length > 0;
+    const hasHumidifierSwitch = this.config.entity?.startsWith('humidifier.');
+
+    // 检查Select实体
+    let hasSelectModes = false;
+    let selectEntity = null;
+    if (this.config.select_entity && this.hass.states[this.config.select_entity]) {
+      selectEntity = this.hass.states[this.config.select_entity];
+      const selectOptions = selectEntity.attributes.options || [];
+      hasSelectModes = selectOptions.length > 0;
+    }
 
     // 使用配置中的显示选项（如果存在），否则使用自动识别结果
     const showHvacModes = this.config.show_hvac_modes !== false && hasHvacModes;
@@ -2343,28 +2680,19 @@ class XiaoshiPadClimateCard extends LitElement {
     const showSwingModes = this.config.show_swing_modes !== false && hasSwingModes;
     const showPresetModes = this.config.show_preset_modes !== false && hasPresetModes;
     const showWaterModes = this.config.show_water_modes !== false && hasWaterModes;
-
-    const fanModes = attrs.fan_modes || [];
-    const modeCount = fanModes.length;
-    const currentFanMode = attrs.fan_mode;
-    let fanSpeed = '2s'; 
-    
-    if (modeCount > 0 && currentFanMode) {
-        const minSpeed = 2;
-        const maxSpeed = 0.5;
-        const speedStep = modeCount > 1 ? (minSpeed - maxSpeed) / (modeCount - 1) : 0;
-        const currentIndex = fanModes.indexOf(currentFanMode);
-        if (currentIndex >= 0) {
-            fanSpeed = (minSpeed - (currentIndex * speedStep)).toFixed(1) + 's';
-        }
-    }
+    const showHumidifierModes = this.config.show_humidifier_modes !== false && hasHumidifierModes;
+    const showHumidifierSwitch = this.config.show_humidifier_switch !== false && hasHumidifierSwitch;
+    const showSelectModes = this.config.show_select_modes !== false && hasSelectModes;
 
     // 动态计算总高度：基础高度310px（包含thermostat容器265px），每个启用模式区域增加48px
     const activeModeCount = (showHvacModes ? 1 : 0) +
                            (showFanModes ? 1 : 0) +
                            (showPresetModes ? 1 : 0) +
                            (showSwingModes ? 1 : 0) +
-                           (showWaterModes ? 1 : 0);
+                           (showWaterModes ? 1 : 0) +
+                           (showHumidifierModes ? 1 : 0) +
+                           (showHumidifierSwitch ? 1 : 0) +
+                           (showSelectModes ? 1 : 0);
     const cardHeight = 300 + (activeModeCount * 48);
 
     // 判断是否有定时器和附加按钮
@@ -2440,6 +2768,30 @@ class XiaoshiPadClimateCard extends LitElement {
                 <div class="area-bg-wrapper">
                     <div class="water-area">
                         ${this._renderWaterButtons(attrs.operation_list, attrs.operation_mode)}
+                    </div>
+                </div>
+            ` : ''}
+
+            ${showHumidifierModes ? html`
+                <div class="area-bg-wrapper">
+                    <div class="humidifier-area">
+                        ${this._renderHumidifierButtons(attrs.available_modes, attrs.available_mode)}
+                    </div>
+                </div>
+            ` : ''}
+
+            ${showHumidifierSwitch ? html`
+                <div class="area-bg-wrapper">
+                    <div class="humidifier-area">
+                        ${this._renderHumidifierSwitchButtons()}
+                    </div>
+                </div>
+            ` : ''}
+
+            ${showSelectModes ? html`
+                <div class="area-bg-wrapper">
+                    <div class="humidifier-area">
+                        ${this._renderSelectButtons()}
                     </div>
                 </div>
             ` : ''}
@@ -2629,6 +2981,7 @@ _renderExtraButtons(buttonType = 1) {
     const theme = this._evaluateTheme();
     const fgColor = theme === 'on' ? 'rgb(0, 0, 0)' : 'rgb(255, 255, 255)';
     const bgColor = theme === 'on' ? 'rgb(230, 230, 230)' : 'rgb(80, 80, 80)';
+    const isHumidifierEntity = this.config.entity?.startsWith('humidifier.');
     let activeColor = theme === 'on' ? 'rgba(0, 188, 213)' : 'rgba(0, 188, 213)';
     if (state === 'cool') activeColor = 'rgb(33,150,243)';
     else if (state === 'heat') activeColor = 'rgb(254,111,33)';
@@ -2636,6 +2989,7 @@ _renderExtraButtons(buttonType = 1) {
     else if (state === 'dry') activeColor = 'rgb(255,151,0)';
     else if (state === 'fan' || state === 'fan_only') activeColor = 'rgb(0,188,213)';
     else if (state === 'auto') activeColor = 'rgb(147,112,219)';
+    else if (isHumidifierEntity) activeColor = 'rgb(33,150,243)';
 
     const buttonConfigKey = buttonType === 1 ? 'buttons' : 'buttons2';
 
@@ -2848,6 +3202,7 @@ _renderExtraButtons(buttonType = 1) {
               else if (state === 'heat' && mode === 'heat') bgColor = 'rgb(254,111,33)';
               else if (state === 'dry' && mode === 'dry') bgColor = 'rgb(255,151,0)';
               else if (state === 'fan_only' && mode === 'fan_only') bgColor = 'rgb(0,188,213)';
+              else if (state === 'auto' && mode === 'auto') bgColor = 'rgb(147,112,219)';
               else if (state === 'off' && mode === 'off') bgColor = theme === 'on' ? 'rgb(180,180,180)' : 'rgb(150,150,150)';
           }
 
@@ -2946,6 +3301,7 @@ _renderExtraButtons(buttonType = 1) {
               else if (state === 'heat') bgColor = 'rgb(254,111,33)';
               else if (state === 'dry') bgColor = 'rgb(255,151,0)';
               else if (state === 'fan_only') bgColor = 'rgb(0,188,213)';
+              else if (state === 'auto') bgColor = 'rgb(147,112,219)';
               else if (state === 'off') bgColor = theme === 'on' ? 'rgb(180,180,180)' : 'rgb(150,150,150)';
           }
 
@@ -2992,6 +3348,7 @@ _renderExtraButtons(buttonType = 1) {
               else if (state === 'heat') bgColor = 'rgb(254,111,33)';
               else if (state === 'dry') bgColor = 'rgb(255,151,0)';
               else if (state === 'fan_only') bgColor = 'rgb(0,188,213)';
+              else if (state === 'auto') bgColor = 'rgb(147,112,219)';
               else if (state === 'off') bgColor = theme === 'on' ? 'rgb(180,180,180)' : 'rgb(150,150,150)';
           }
 
@@ -3038,6 +3395,7 @@ _renderExtraButtons(buttonType = 1) {
             else if (state === 'heat') bgColor = 'rgb(254,111,33)';
             else if (state === 'dry') bgColor = 'rgb(255,151,0)';
             else if (state === 'fan_only') bgColor = 'rgb(0,188,213)';
+            else if (state === 'auto') bgColor = 'rgb(147,112,219)';
             else if (state === 'off') bgColor = theme === 'on' ? 'rgb(180,180,180)' : 'rgb(150,150,150)';
         }
 
@@ -3053,6 +3411,208 @@ _renderExtraButtons(buttonType = 1) {
                 </div>
             </button>
         `;
+    });
+  }
+
+  _renderHumidifierButtons(modes, currentMode) {
+    if (!modes) return html``;
+
+    const entity = this.hass.states[this.config.entity];
+    const state = entity ? entity.state : 'off';
+    const theme = this._evaluateTheme();
+    const modeConfigs = this.config.mode_configs?.available_modes || {};
+
+    const modeIcons = {
+        'on': 'mdi:power',
+        'off': 'mdi:power-off',
+        'auto': 'mdi:autorenew',
+        'sleep': 'mdi:sleep',
+        'baby': 'mdi:baby',
+        'favorite': 'mdi:heart',
+        'low': 'mdi:weather-sunny-alert',
+        'medium': 'mdi:weather-sunny',
+        'high': 'mdi:weather-sunny',
+        'normal': 'mdi:fan'
+    };
+
+    // 应用过滤器
+    const filters = this.config.mode_filters?.available_modes || {};
+    const filteredModes = modes.filter(mode => filters[mode] !== false);
+
+    return filteredModes.map(mode => {
+        const isActive = mode === currentMode;
+        let bgColor = 'rgb(0,0,0,0)';
+        const config = modeConfigs[mode] || {};
+
+        // 获取自定义配置
+        const showName = config.show_name !== false;
+        const showIcon = config.show_icon !== false;
+        const customName = config.custom_name || this._translateHumidifierMode(mode);
+        const customIcon = config.custom_icon || modeIcons[mode] || 'mdi:water-percent';
+
+        if (isActive) {
+            if (mode === 'on') bgColor = 'rgb(33,150,243)';
+            else if (mode === 'off') bgColor = theme === 'on' ? 'rgb(180,180,180)' : 'rgb(150,150,150)';
+            else bgColor = 'rgb(33,150,243)';
+        }
+
+        return html`
+            <button
+                class="mode-button ${isActive ? 'active-mode' : ''}"
+                @click=${() => this._setHumidifierMode(mode)}
+                style="--active-color: ${bgColor}; background: ${isActive ? bgColor : 'rgb(0,0,0,0)'}"
+                title="${customName}"
+            >
+                ${showIcon ? html`<ha-icon class="icon" icon="${customIcon}" style="color: ${isActive ? (theme === 'on' ? 'rgb(0,0,0)' : 'rgb(255,255,255)') : ''}"></ha-icon>` : ''}
+                ${showName ? html`<span class="mode-text" style="font-size: 10px; color: ${isActive ? (theme === 'on' ? 'rgb(0,0,0)' : 'rgb(255,255,255)') : ''}">${customName}</span>` : ''}
+            </button>
+        `;
+    });
+  }
+
+  _setHumidifierMode(mode) {
+    if (mode === 'off') {
+      this._callService('humidifier', 'turn_off', {
+        entity_id: this.config.entity
+      });
+    } else if (mode === 'on') {
+      this._callService('humidifier', 'turn_on', {
+        entity_id: this.config.entity
+      });
+    } else {
+      this._callService('humidifier', 'set_mode', {
+        entity_id: this.config.entity,
+        mode: mode
+      });
+    }
+    this._handleClick();
+  }
+
+  _renderHumidifierSwitchButtons() {
+    const entity = this.hass.states[this.config.entity];
+    if (!entity) return html``;
+
+    const state = entity.state;
+    const theme = this._evaluateTheme();
+    const modeConfigs = this.config.mode_configs?.humidifier_switch || {};
+
+    const modes = ['on', 'off'];
+
+    // 应用过滤器
+    const filters = this.config.mode_filters?.humidifier_switch || {};
+
+    return modes.filter(mode => filters[mode] !== false).map(mode => {
+        const isActive = mode === state;
+        let bgColor = 'rgb(0,0,0,0)';
+        const config = modeConfigs[mode] || {};
+
+        // 获取自定义配置
+        const showName = config.show_name !== false;
+        const showIcon = config.show_icon !== false;
+        const customName = config.custom_name || (mode === 'on' ? '开机' : '关机');
+        const customIcon = config.custom_icon || (mode === 'on' ? 'mdi:power' : 'mdi:power-off');
+
+        if (isActive) {
+            if (mode === 'on') bgColor = 'rgb(33,150,243)';
+            else if (mode === 'off') bgColor = theme === 'on' ? 'rgb(180,180,180)' : 'rgb(150,150,150)';
+        }
+
+        return html`
+            <button
+                class="mode-button ${isActive ? 'active-mode' : ''}"
+                @click=${() => mode === 'on' ? this._callService('humidifier', 'turn_on', { entity_id: this.config.entity }) : this._callService('humidifier', 'turn_off', { entity_id: this.config.entity })}
+                style="--active-color: ${bgColor}; background: ${isActive ? bgColor : 'rgb(0,0,0,0)'}"
+                title="${customName}"
+            >
+                ${showIcon ? html`<ha-icon class="icon" icon="${customIcon}" style="color: ${isActive ? (theme === 'on' ? 'rgb(0,0,0)' : 'rgb(255,255,255)') : ''}"></ha-icon>` : ''}
+                ${showName ? html`<span class="mode-text" style="font-size: 10px; color: ${isActive ? (theme === 'on' ? 'rgb(0,0,0)' : 'rgb(255,255,255)') : ''}">${customName}</span>` : ''}
+            </button>
+        `;
+    });
+  }
+
+  _translateHumidifierMode(mode) {
+    const translations = {
+        'on': '开机',
+        'off': '关机',
+        'auto': '自动',
+        'sleep': '睡眠',
+        'baby': '婴儿',
+        'favorite': '收藏',
+        'low': '低速',
+        'medium': '中速',
+        'high': '高速',
+        'normal': '正常'
+    };
+    return translations[mode] || mode;
+  }
+
+  _renderSelectButtons() {
+    if (!this.config.select_entity) return html``;
+
+    const selectEntity = this.hass.states[this.config.select_entity];
+    if (!selectEntity) return html``;
+
+    const state = selectEntity.state;
+    const attrs = selectEntity.attributes;
+    const options = attrs.options || [];
+    const theme = this._evaluateTheme();
+    const modeConfigs = this.config.mode_configs?.select_modes || {};
+
+    // 获取主实体的状态来确定颜色
+    const mainEntity = this.hass.states[this.config.entity];
+    const mainEntityState = mainEntity ? mainEntity.state : 'off';
+    const isHumidifierEntity = this.config.entity?.startsWith('humidifier.');
+
+    // 应用过滤器
+    const filters = this.config.mode_filters?.select_modes || {};
+    const filteredOptions = options.filter(option => filters[option] !== false);
+
+    return filteredOptions.map(option => {
+        const isActive = option === state;
+        let bgColor = 'rgb(0,0,0,0)';
+        const config = modeConfigs[option] || {};
+
+        // 获取自定义配置
+        const showName = config.show_name !== false;
+        const showIcon = config.show_icon !== false;
+        const customName = config.custom_name || option;
+        const customIcon = config.custom_icon || 'mdi:tune';
+
+        if (isActive) {
+            // 根据主实体类型和状态决定颜色
+            if (isHumidifierEntity) {
+                bgColor = 'rgb(33,150,243)'; // 加湿器使用蓝色
+            } else {
+                // 空调和热水器实体根据状态决定颜色
+                if (mainEntityState === 'cool') bgColor = 'rgb(33,150,243)';
+                else if (mainEntityState === 'heat') bgColor = 'rgb(254,111,33)';
+                else if (mainEntityState === 'dry') bgColor = 'rgb(255,151,0)';
+                else if (mainEntityState === 'fan_only') bgColor = 'rgb(0,188,213)';
+                else if (mainEntityState === 'auto') bgColor = 'rgb(147,112,219)';
+                else if (mainEntityState === 'off') bgColor = theme === 'on' ? 'rgb(180,180,180)' : 'rgb(150,150,150)';
+                else bgColor = 'rgb(33,150,243)'; // 默认蓝色
+            }
+        }
+
+        return html`
+            <button
+                class="mode-button ${isActive ? 'active-mode' : ''}"
+                @click=${() => this._setSelectOption(option)}
+                style="--active-color: ${bgColor}; background: ${isActive ? bgColor : 'rgb(0,0,0,0)'}"
+                title="${customName}"
+            >
+                ${showIcon ? html`<ha-icon class="icon" icon="${customIcon}" style="color: ${isActive ? (theme === 'on' ? 'rgb(0,0,0)' : 'rgb(255,255,255)') : ''}"></ha-icon>` : ''}
+                ${showName ? html`<span class="mode-text" style="font-size: 10px; color: ${isActive ? (theme === 'on' ? 'rgb(0,0,0)' : 'rgb(255,255,255)') : ''}">${customName}</span>` : ''}
+            </button>
+        `;
+    });
+  }
+
+  _setSelectOption(option) {
+    this._callService('select', 'select_option', {
+      entity_id: this.config.select_entity,
+      option: option
     });
   }
 
