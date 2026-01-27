@@ -1,4 +1,4 @@
-console.info("%c 消逝卡-平板端 \n%c      v 1.0.5 ", "color: red; font-weight: bold; background: black", "color: white; font-weight: bold; background: black");
+console.info("%c 消逝卡-平板端 \n%c      v 1.0.6 ", "color: red; font-weight: bold; background: black", "color: white; font-weight: bold; background: black");
 
 const loadCards = () => {
     import('./xiaoshi-pad-climate-card.js');
@@ -16,8 +16,8 @@ const cardConfigs = [
   },
   {
     type: 'xiaoshi-pad-climate-card',
-    name: '消逝卡(平板端)-空调/水暖毯/热水器卡',
-    description: '平板端空调/水暖毯/热水器卡',
+    name: '消逝卡(平板端)-空调/水暖毯/热水器/加湿器卡',
+    description: '平板端空调/水暖毯/热水器卡/加湿器卡',
     preview: true
   }
 ];
