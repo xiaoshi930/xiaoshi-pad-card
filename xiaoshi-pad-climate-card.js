@@ -166,7 +166,10 @@ class XiaoshiPadClimateCardEditor extends LitElement {
     if (this.config.show_humidifier_modes === undefined) {
       this.config.show_humidifier_modes = this._availableModes.hasHumidifierModes;
     }
-    if (this.config.show_humidifier_switch === undefined) {
+    // 加湿器实体时，自动设置显示加湿器开关为 true
+    if (isHumidifierEntity) {
+      this.config.show_humidifier_switch = true;
+    } else if (this.config.show_humidifier_switch === undefined) {
       this.config.show_humidifier_switch = this._availableModes.hasHumidifierSwitch;
     }
 
@@ -977,11 +980,11 @@ class XiaoshiPadClimateCardEditor extends LitElement {
                   ${this._renderModeFilter('available_modes', '加湿器模式筛选')}
                 </div>
               ` : ''}
-              ${this._availableModes?.hasHumidifierSwitch ? html`
+              ${this.config.entity?.startsWith('humidifier.') ? html`
                 <div style="display: flex; flex-direction: column; gap: 4px;">
                   <div style="display: flex; align-items: center; gap: 8px;">
                     <ha-switch
-                      .checked=${this.config.show_humidifier_switch !== false}
+                      .checked=${this.config.show_humidifier_switch === true}
                       @change=${this._showHumidifierSwitchChanged}
                     ></ha-switch>
                     <span>显示加湿器开关按钮</span>
