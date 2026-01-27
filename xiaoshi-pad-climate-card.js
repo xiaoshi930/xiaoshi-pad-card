@@ -2859,7 +2859,7 @@ class XiaoshiPadClimateCard extends LitElement {
                climateState === '宠物洗' || climateState === '厨房用') activeColor = 'rgb(254,111,33)';
       else if (climateState === 'dry') activeColor = 'rgb(255,151,0)';
       else if (climateState === 'fan' || climateState === 'fan_only') activeColor = 'rgb(0,188,213)';
-      else if (climateState === 'auto') activeColor = 'rgb(147,112,219)';
+      else if (climateState === 'auto') activeColor = 'rgb(47,96,49)';
     }
 
     return html`
@@ -2991,7 +2991,7 @@ _renderExtraButtons(buttonType = 1) {
     else if (state === '自定义' || state === 'AI控温' || state === '婴童洗' || state === '舒适洗' || state === '宠物洗' || state === '厨房用') activeColor = 'rgb(254,111,33)';
     else if (state === 'dry') activeColor = 'rgb(255,151,0)';
     else if (state === 'fan' || state === 'fan_only') activeColor = 'rgb(0,188,213)';
-    else if (state === 'auto') activeColor = 'rgb(147,112,219)';
+    else if (state === 'auto') activeColor = 'rgb(47,96,49)';
     else if (isHumidifierEntity) activeColor = 'rgb(33,150,243)';
 
     const buttonConfigKey = buttonType === 1 ? 'buttons' : 'buttons2';
@@ -3205,7 +3205,7 @@ _renderExtraButtons(buttonType = 1) {
               else if (state === 'heat' && mode === 'heat') bgColor = 'rgb(254,111,33)';
               else if (state === 'dry' && mode === 'dry') bgColor = 'rgb(255,151,0)';
               else if (state === 'fan_only' && mode === 'fan_only') bgColor = 'rgb(0,188,213)';
-              else if (state === 'auto' && mode === 'auto') bgColor = 'rgb(147,112,219)';
+              else if (state === 'auto' && mode === 'auto') bgColor = 'rgb(47,96,49)';
               else if (state === 'off' && mode === 'off') bgColor = theme === 'on' ? 'rgb(180,180,180)' : 'rgb(150,150,150)';
           }
 
@@ -3251,7 +3251,7 @@ _renderExtraButtons(buttonType = 1) {
             else if (state === 'heat') bgColor = 'rgb(254,111,33)';
             else if (state === 'dry') bgColor = 'rgb(255,151,0)';
             else if (state === 'fan_only') bgColor = 'rgb(0,188,213)';
-            else if (state === 'auto') bgColor = 'rgb(147,112,219)';
+            else if (state === 'auto') bgColor = 'rgb(47,96,49)';
             else if (state === 'off') bgColor = theme === 'on' ? 'rgb(180,180,180)' : 'rgb(150,150,150)';
         }
 
@@ -3304,7 +3304,7 @@ _renderExtraButtons(buttonType = 1) {
               else if (state === 'heat') bgColor = 'rgb(254,111,33)';
               else if (state === 'dry') bgColor = 'rgb(255,151,0)';
               else if (state === 'fan_only') bgColor = 'rgb(0,188,213)';
-              else if (state === 'auto') bgColor = 'rgb(147,112,219)';
+              else if (state === 'auto') bgColor = 'rgb(47,96,49)';
               else if (state === 'off') bgColor = theme === 'on' ? 'rgb(180,180,180)' : 'rgb(150,150,150)';
           }
 
@@ -3351,7 +3351,7 @@ _renderExtraButtons(buttonType = 1) {
               else if (state === 'heat') bgColor = 'rgb(254,111,33)';
               else if (state === 'dry') bgColor = 'rgb(255,151,0)';
               else if (state === 'fan_only') bgColor = 'rgb(0,188,213)';
-              else if (state === 'auto') bgColor = 'rgb(147,112,219)';
+              else if (state === 'auto') bgColor = 'rgb(47,96,49)';
               else if (state === 'off') bgColor = theme === 'on' ? 'rgb(180,180,180)' : 'rgb(150,150,150)';
           }
 
@@ -3398,7 +3398,7 @@ _renderExtraButtons(buttonType = 1) {
             else if (state === 'heat') bgColor = 'rgb(254,111,33)';
             else if (state === 'dry') bgColor = 'rgb(255,151,0)';
             else if (state === 'fan_only') bgColor = 'rgb(0,188,213)';
-            else if (state === 'auto') bgColor = 'rgb(147,112,219)';
+            else if (state === 'auto') bgColor = 'rgb(47,96,49)';
             else if (state === 'off') bgColor = theme === 'on' ? 'rgb(180,180,180)' : 'rgb(150,150,150)';
         }
 
@@ -3592,7 +3592,7 @@ _renderExtraButtons(buttonType = 1) {
                 else if (mainEntityState === 'heat') bgColor = 'rgb(254,111,33)';
                 else if (mainEntityState === 'dry') bgColor = 'rgb(255,151,0)';
                 else if (mainEntityState === 'fan_only') bgColor = 'rgb(0,188,213)';
-                else if (mainEntityState === 'auto') bgColor = 'rgb(147,112,219)';
+                else if (mainEntityState === 'auto') bgColor = 'rgb(47,96,49)';
                 else if (mainEntityState === 'off') bgColor = theme === 'on' ? 'rgb(180,180,180)' : 'rgb(150,150,150)';
                 else bgColor = 'rgb(33,150,243)'; // 默认蓝色
             }
