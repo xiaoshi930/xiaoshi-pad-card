@@ -2890,8 +2890,14 @@ class XiaoshiPadClimateCard extends LitElement {
     `;
   } 
 
-   _handleClick() {
-     navigator.vibrate(50);
+  _handleClick(){
+    const hapticEvent = new Event('haptic', {
+      bubbles: true,
+      cancelable: false,
+      composed: true
+    });
+    hapticEvent.detail = 'light';
+    this.dispatchEvent(hapticEvent);
   }
   
   _formatSeconds(totalSeconds) {
