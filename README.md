@@ -5,7 +5,15 @@
   type: module
 ~~~
 
-## 功能1：分布卡(温度分布、湿度分布)
+## 功能1：空调卡/加湿器卡/热水器卡/水暖毯卡  
+**引用示例**  
+**详细配置参照可视化编辑器   
+~~~
+type: custom:xiaoshi-pad-climate-card  
+~~~
+
+
+## 功能2：分布卡(温度分布、湿度分布)
 **引用示例**
 ~~~
 type: custom:xiaoshi-pad-grid-card
